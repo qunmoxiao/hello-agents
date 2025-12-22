@@ -1,7 +1,7 @@
 [gd_scene load_steps=65 format=3 uid="uid://vd6f817st20r"]
 
 [ext_resource type="Script" uid="uid://dyfhfmncwhby0" path="res://scripts/main.gd" id="1_tbgi4"]
-[ext_resource type="Texture2D" uid="uid://cm4y1cqc77j56" path="res://assets/interiors/image.png" id="2_eb6dy"]
+[ext_resource type="Texture2D" uid="uid://dvs41irukbpji" path="res://assets/interiors/背景1.png" id="2_muem4"]
 [ext_resource type="PackedScene" uid="uid://dob8a2h4f6gt8" path="res://scenes/player.tscn" id="2_sugp2"]
 [ext_resource type="Texture2D" uid="uid://bvhml2gnweolu" path="res://assets/interiors/好未来.png" id="3_a8y0u"]
 [ext_resource type="PackedScene" uid="uid://dxcvuxgvdsx7" path="res://scenes/npc.tscn" id="3_jyhfs"]
@@ -327,18 +327,20 @@ size = Vector2(107, 65)
 script = ExtResource("1_tbgi4")
 
 [node name="Background2" type="Sprite2D" parent="."]
-position = Vector2(2497, 963)
-scale = Vector2(2.1749785, 1.2982508)
-texture = ExtResource("2_eb6dy")
+position = Vector2(4015, 1039)
+scale = Vector2(4, 2.388)
+texture = ExtResource("2_muem4")
 
 [node name="Background" type="Sprite2D" parent="."]
-position = Vector2(643.00006, 371)
+position = Vector2(61.000122, 356.99997)
 scale = Vector2(1.4747808, 1.1394081)
 texture = ExtResource("5_tbgi4")
 
 [node name="72011101536234c" type="Sprite2D" parent="Background"]
-position = Vector2(-172.56798, 91.05606)
-scale = Vector2(0.1, 0.13)
+position = Vector2(860.87964, 739.3232)
+rotation = -0.32463124
+scale = Vector2(0.05800088, 0.059121568)
+skew = 0.30019662
 texture = ExtResource("5_trceg")
 region_enabled = true
 region_rect = Rect2(0, 0, 1050, 758)
@@ -349,46 +351,46 @@ scale = Vector2(0.09239753, 0.12666555)
 texture = ExtResource("8_tipki")
 
 [node name="Background3" type="Sprite2D" parent="."]
-position = Vector2(4724, 962.99994)
+position = Vector2(4512, 2869)
 scale = Vector2(2.1749785, 1.2982508)
 texture = ExtResource("15_jkv2x")
 
 [node name="Background4" type="Sprite2D" parent="."]
-position = Vector2(4723, 2292)
+position = Vector2(4487.0005, 2900)
 scale = Vector2(2.1749785, 1.2982508)
 texture = ExtResource("8_muem4")
 
 [node name="Background5" type="Sprite2D" parent="."]
-position = Vector2(2494, 2296)
+position = Vector2(4176, 3026)
 scale = Vector2(2.1749785, 1.2982508)
 texture = ExtResource("9_dp3eg")
 
 [node name="72011101536234c" type="Sprite2D" parent="."]
-position = Vector2(4249, 2026)
+position = Vector2(4629, 2058)
 scale = Vector2(3, 2.328)
 texture = ExtResource("3_a8y0u")
 region_enabled = true
 region_rect = Rect2(0, 0, 1050, 758)
 
 [node name="Player" parent="." instance=ExtResource("2_sugp2")]
-position = Vector2(3178, 1377)
+position = Vector2(1738, 1541)
 
 [node name="NPCs" type="Node2D" parent="."]
 
 [node name="NPC_Wang1" parent="NPCs" instance=ExtResource("3_jyhfs")]
 z_index = 1
-position = Vector2(4935, 1012)
+position = Vector2(5438, 1528)
 npc_name = "王五"
 npc_title = "UI设计师"
 sprite_frames = SubResource("SpriteFrames_dp3eg")
 wander_range = 0.0
 
 [node name="NPC_Zhang" parent="NPCs" instance=ExtResource("3_jyhfs")]
-position = Vector2(4459, 1371)
+position = Vector2(2605, 1489)
 wander_range = 100.0
 
 [node name="NPC_Li" parent="NPCs" instance=ExtResource("3_jyhfs")]
-position = Vector2(1940, 1396)
+position = Vector2(1870, 1091)
 scale = Vector2(0.7, 0.649)
 up_direction = Vector2(0.9998615, -0.016647693)
 npc_name = "李四"
@@ -402,7 +404,7 @@ wander_interval_max = 5.0
 
 [node name="NPC_Wang" parent="NPCs" instance=ExtResource("3_jyhfs")]
 z_index = 1
-position = Vector2(1767, 758)
+position = Vector2(4288, 1450)
 npc_name = "王五"
 npc_title = "UI设计师"
 sprite_frames = SubResource("SpriteFrames_dp3eg")
