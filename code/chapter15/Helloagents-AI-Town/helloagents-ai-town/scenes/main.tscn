@@ -1,4 +1,4 @@
-[gd_scene load_steps=75 format=3 uid="uid://vd6f817st20r"]
+[gd_scene load_steps=76 format=3 uid="uid://vd6f817st20r"]
 
 [ext_resource type="Script" uid="uid://dyfhfmncwhby0" path="res://scripts/main.gd" id="1_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://dvs41irukbpji" path="res://assets/interiors/背景1.png" id="2_muem4"]
@@ -189,7 +189,7 @@ region = Rect2(448, 0, 112, 369)
 atlas = ExtResource("12_jbj1t")
 region = Rect2(560, 0, 112, 369)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_dp3eg"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_muem4"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -257,6 +257,9 @@ b = Vector2(278, -1)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_gqmmt"]
 size = Vector2(493.45044, 110.03961)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fuf3a"]
+size = Vector2(82.85248, 268.986)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yc10j"]
 size = Vector2(798.375, 82.5)
@@ -383,10 +386,11 @@ wander_interval_max = 5.0
 
 [node name="NPC_Wang" parent="NPCs" instance=ExtResource("3_jyhfs")]
 z_index = 1
-position = Vector2(2252, 1661)
+position = Vector2(2773, 1157)
 npc_name = "中年李白"
 npc_title = ""
-sprite_frames = SubResource("SpriteFrames_dp3eg")
+sprite_frames = SubResource("SpriteFrames_muem4")
+wander_enabled = false
 wander_range = 5.0
 
 [node name="DialogueUI" parent="." instance=ExtResource("5_tefeu")]
@@ -507,9 +511,9 @@ position = Vector2(1008, -338)
 shape = SubResource("RectangleShape2D_eb6dy")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Walls2/BottomWall"]
-position = Vector2(645, -313)
+position = Vector2(632.1616, -321.729)
 rotation = 1.2182398
-shape = SubResource("RectangleShape2D_trceg")
+shape = SubResource("RectangleShape2D_fuf3a")
 debug_color = Color(0.7156372, 0.4263275, 0.60480946, 0.41960785)
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Walls2/BottomWall"]

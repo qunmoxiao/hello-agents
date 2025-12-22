@@ -8,11 +8,11 @@ const API_NPCS = API_BASE_URL + "/npcs"
 const API_NPC_STATUS = API_BASE_URL + "/npcs/status"
 
 # ==================== NPC配置 ====================
-const NPC_NAMES = ["张三", "李四", "王五"]
+const NPC_NAMES = ["老年李白", "青年李白", "中年李白"]
 const NPC_TITLES = {
-	"张三": "Python工程师",
-	"李四": "产品经理",
-	"王五": "UI设计师"
+	"老年李白": "老年李白",
+	"青年李白": "青年李白",
+	"中年李白": "中年李白"
 }
 
 # ==================== 游戏配置 ====================

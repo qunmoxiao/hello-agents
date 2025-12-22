@@ -12,8 +12,8 @@ class ChatRequest(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "npc_name": "张三",
-                "message": "你好,你在做什么?"
+                "npc_name": "老年李白",
+                "message": "你好,最近在做什么?"
             }
         }
 
@@ -28,9 +28,9 @@ class ChatResponse(BaseModel):
     class Config:
         json_schema_extra = {
             "example": {
-                "npc_name": "张三",
-                "npc_title": "Python工程师",
-                "message": "你好!我正在写代码,调试一个多智能体系统的bug。",
+                "npc_name": "老年李白",
+                "npc_title": "老年李白",
+                "message": "在下李白,字太白。最近在漂泊创作,你愿意听我吟诗一首吗?",
                 "success": True
             }
         }
@@ -53,9 +53,9 @@ class NPCStatusResponse(BaseModel):
         json_schema_extra = {
             "example": {
                 "dialogues": {
-                    "张三": "终于把这个bug修复了,测试通过!",
-                    "李四": "下周的产品评审会需要准备一下资料。",
-                    "王五": "这个界面的配色方案还需要优化一下。"
+                    "老年李白": "漂泊路上,偶得佳句,提笔记录。",
+                    "青年李白": "游历四方,见名山大川,诗兴大发!",
+                    "中年李白": "在长安宫中,为陛下作诗,虽得赏识,但理想未遂。"
                 },
                 "last_update": "2024-01-15T10:30:00",
                 "next_update_in": 25

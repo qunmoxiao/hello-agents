@@ -100,8 +100,8 @@ func start_dialogue(npc_name: String):
 	"""开始与NPC对话"""
 	current_npc_name = npc_name
 
-	# ⭐ 如果与李四对话，启动外部程序
-	if npc_name == "李四":
+	# ⭐ 如果与青年李白对话，启动外部程序
+	if npc_name == "青年李白":
 		start_external_app_for_lisi()
 
 	# 通知NPC进入交互状态 (停止移动) 
@@ -225,10 +225,10 @@ func get_npc_by_name(npc_name: String) -> Node:
 			return npc
 	return null
 
-# ⭐ 为李四启动外部程序
+# ⭐ 为青年李白启动外部程序
 func start_external_app_for_lisi():
-	"""为李四启动外部程序"""
-	print("[INFO] 检测到与李四对话，准备启动NetVideoClient")
+	"""为青年李白启动外部程序"""
+	print("[INFO] 检测到与青年李白对话，准备启动NetVideoClient")
 	
 	# 检查.app目录是否存在（.app在macOS上是一个目录包）
 	if not DirAccess.dir_exists_absolute(NETVIDEO_CLIENT_PATH):

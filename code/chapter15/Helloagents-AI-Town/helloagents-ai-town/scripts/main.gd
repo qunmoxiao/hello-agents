@@ -58,11 +58,11 @@ func update_npc_dialogue(npc_name: String, dialogue: String):
 func get_npc_node(npc_name: String) -> Node2D:
 	"""根据名字获取NPC节点"""
 	match npc_name:
-		"张三":
+		"老年李白":
 			return npc_zhang
-		"李四":
+		"青年李白":
 			return npc_li
-		"王五":
+		"中年李白":
 			return npc_wang
 		_:
 			return null

@@ -2,8 +2,8 @@
 extends CharacterBody2D  # ⭐ 改为CharacterBody2D
 
 # NPC信息
-@export var npc_name: String = "张三"
-@export var npc_title: String = "Python工程师"
+@export var npc_name: String = "老年李白"
+@export var npc_title: String = "老年李白"
 
 # NPC外观配置
 @export var sprite_frames: SpriteFrames = null  # 自定义精灵帧资源
