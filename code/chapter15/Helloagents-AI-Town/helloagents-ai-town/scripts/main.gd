@@ -24,6 +24,13 @@ func _ready():
 		api_client.get_npc_status()
 	else:
 		print("[ERROR] API客户端未找到")
+	
+	# ⭐ 创建外部程序管理器
+	var external_app_manager = preload("res://scripts/external_app_manager.gd").new()
+	external_app_manager.name = "ExternalAppManager"
+	external_app_manager.add_to_group("external_app_manager")
+	get_tree().root.add_child(external_app_manager)
+	print("[INFO] 外部程序管理器已添加到场景树")
 
 func _process(delta: float):
 	# 定时更新NPC状态

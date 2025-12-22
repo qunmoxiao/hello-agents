@@ -16,6 +16,12 @@ var current_npc_name: String = ""
 # API客户端引用
 var api_client: Node = null
 
+# ⭐ 外部程序管理器引用
+var external_app_manager: ExternalAppManager = null
+
+# ⭐ NetVideoClient路径（备用）
+const NETVIDEO_CLIENT_PATH = "/Users/tal/Souces/webrtc/rtcengine-mac-release/src/bin/macx/NetVideoClient.app"
+
 func _ready():
 	# 添加到对话系统组
 	add_to_group("dialogue_system")
@@ -33,6 +39,16 @@ func _ready():
 	if api_client:
 		api_client.chat_response_received.connect(_on_chat_response_received)
 		api_client.chat_error.connect(_on_chat_error)
+
+	# ⭐ 获取外部程序管理器
+	external_app_manager = get_node_or_null("/root/ExternalAppManager")
+	if not external_app_manager:
+		external_app_manager = get_tree().get_first_node_in_group("external_app_manager")
+	
+	if external_app_manager:
+		print("[INFO] 外部程序管理器已连接")
+	else:
+		print("[WARN] 外部程序管理器未找到，将使用直接调用方式")
 
 	print("[INFO] 对话UI初始化完成")
 
@@ -83,6 +99,10 @@ func _input(event: InputEvent):
 func start_dialogue(npc_name: String):
 	"""开始与NPC对话"""
 	current_npc_name = npc_name
+
+	# ⭐ 如果与李四对话，启动外部程序
+	if npc_name == "李四":
+		start_external_app_for_lisi()
 
 	# 通知NPC进入交互状态 (停止移动) 
 	var npc = get_npc_by_name(npc_name)
@@ -204,3 +224,35 @@ func get_npc_by_name(npc_name: String) -> Node:
 		if npc.npc_name == npc_name:
 			return npc
 	return null
+
+# ⭐ 为李四启动外部程序
+func start_external_app_for_lisi():
+	"""为李四启动外部程序"""
+	print("[INFO] 检测到与李四对话，准备启动NetVideoClient")
+	
+	# 检查.app目录是否存在（.app在macOS上是一个目录包）
+	if not DirAccess.dir_exists_absolute(NETVIDEO_CLIENT_PATH):
+		print("[ERROR] NetVideoClient.app不存在: ", NETVIDEO_CLIENT_PATH)
+		dialogue_text.append_text("[color=red]❌ 视频通话客户端未找到[/color]\n")
+		return
+	
+	# 使用外部程序管理器（如果存在）
+	if external_app_manager and external_app_manager.has_method("start_netvideo_client_simple"):
+		var success = external_app_manager.start_netvideo_client_simple()
+		if success:
+			dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
+			print("[INFO] ✅ NetVideoClient已启动")
+		else:
+			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
+			print("[ERROR] ❌ NetVideoClient启动失败")
+	else:
+		# 直接使用open命令作为备选方案（macOS标准方式）
+		var output = []
+		var open_args = PackedStringArray([NETVIDEO_CLIENT_PATH])
+		var exit_code = OS.execute("open", open_args, output)
+		if exit_code == 0:
+			dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
+			print("[INFO] ✅ NetVideoClient已启动（直接调用open命令）")
+		else:
+			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
+			print("[ERROR] ❌ NetVideoClient启动失败，退出代码: ", exit_code)
