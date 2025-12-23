@@ -1,0 +1,216 @@
+{
+  "quest_001": {
+    "quest_id": "quest_001",
+    "type": "dialogue",
+    "title": "了解李白的志向",
+    "description": "与青年李白对话，了解他离开蜀中的原因",
+    "chapter": 1,
+    "is_main": true,
+    "required_quests": [],
+    "npc": "青年李白",
+    "keywords": ["仗剑去国", "辞亲远游", "志向"],
+    "required_keywords": 2,
+    "trigger": {
+      "type": "dialogue",
+      "npc": "青年李白",
+      "auto_start": true
+    },
+    "completion": {
+      "type": "keyword_collection",
+      "required_count": 2
+    },
+    "reward": {
+      "clue": "clue_001",
+      "exp": 100
+    },
+    "hint": "与青年李白对话，询问他的志向"
+  },
+  "quest_002": {
+    "quest_id": "quest_002",
+    "type": "quiz",
+    "title": "桥上答题",
+    "description": "在桥上答题，了解李白青年时期的知识",
+    "chapter": 1,
+    "is_main": true,
+    "required_quests": ["quest_001"],
+    "quiz_id": "region1_bridge",
+    "required_correct": 2,
+    "total_questions": 3,
+    "trigger": {
+      "type": "quiz",
+      "quiz_id": "region1_bridge",
+      "auto_start": false
+    },
+    "completion": {
+      "type": "quiz_completion",
+      "required_correct": 2
+    },
+    "reward": {
+      "unlock_region": 2,
+      "clue": "clue_002",
+      "exp": 200
+    }
+  },
+  "quest_003": {
+    "quest_id": "quest_003",
+    "type": "dialogue",
+    "title": "进入长安",
+    "description": "与中年李白对话，了解他在长安的生活",
+    "chapter": 2,
+    "is_main": true,
+    "required_quests": [],
+    "npc": "中年李白",
+    "keywords": ["长安", "翰林院", "贵妃", "赐金放还"],
+    "required_keywords": 2,
+    "trigger": {
+      "type": "dialogue",
+      "npc": "中年李白",
+      "auto_start": true
+    },
+    "completion": {
+      "type": "keyword_collection",
+      "required_count": 2
+    },
+    "reward": {
+      "clue": "clue_004",
+      "exp": 100
+    },
+    "hint": "与中年李白对话，询问他在长安的经历"
+  },
+  "quest_004": {
+    "quest_id": "quest_004",
+    "type": "quiz",
+    "title": "宫门答题",
+    "description": "在宫门前答题，了解李白在长安的创作和与权贵的关系",
+    "chapter": 2,
+    "is_main": true,
+    "required_quests": ["quest_003"],
+    "quiz_id": "region2_palace",
+    "required_correct": 2,
+    "total_questions": 3,
+    "trigger": {
+      "type": "quiz",
+      "quiz_id": "region2_palace",
+      "auto_start": false
+    },
+    "completion": {
+      "type": "quiz_completion",
+      "required_correct": 2
+    },
+    "reward": {
+      "unlock_region": 3,
+      "clue": "clue_005",
+      "exp": 200
+    },
+    "hint": "前往宫门前答题，了解李白在长安的经历"
+  },
+  
+  "quest_007": {
+    "quest_id": "quest_007",
+    "type": "dialogue",
+    "title": "流放夜郎",
+    "description": "与老年李白对话，了解他的流放经历",
+    "chapter": 3,
+    "is_main": true,
+    "required_quests": [],
+    "npc": "老年李白",
+    "keywords": ["流放夜郎", "遇赦", "当涂", "晚年"],
+    "required_keywords": 2,
+    "trigger": {
+      "type": "dialogue",
+      "npc": "老年李白",
+      "auto_start": true
+    },
+    "completion": {
+      "type": "keyword_collection",
+      "required_count": 2
+    },
+    "reward": {
+      "clue": "clue_007",
+      "exp": 100
+    },
+    "hint": "与老年李白对话，询问他的流放经历"
+  },
+  "quest_008": {
+    "quest_id": "quest_008",
+    "type": "quiz",
+    "title": "最终答题",
+    "description": "在码头上答题，完成最终考验，了解李白晚年的经历和代表作品",
+    "chapter": 3,
+    "is_main": true,
+    "required_quests": ["quest_007"],
+    "quiz_id": "region3_dock",
+    "required_correct": 2,
+    "total_questions": 3,
+    "trigger": {
+      "type": "quiz",
+      "quiz_id": "region3_dock",
+      "auto_start": false
+    },
+    "completion": {
+      "type": "quiz_completion",
+      "required_correct": 2
+    },
+    "reward": {
+      "clue": "clue_008",
+      "exp": 200
+    },
+    "hint": "前往码头上答题，了解李白晚年的经历"
+  },
+  "quest_009": {
+    "quest_id": "quest_009",
+    "type": "reasoning",
+    "title": "最终推理",
+    "description": "根据收集的所有线索，回答\"李白一生的转折点是什么？\"",
+    "chapter": 3,
+    "is_main": true,
+    "required_quests": ["quest_008"],
+    "required_clues": ["clue_001", "clue_002", "clue_004", "clue_005", "clue_007", "clue_008"],
+    "question": "李白一生的转折点是什么？",
+    "options": [
+      "离开蜀中",
+      "进入长安",
+      "离开长安",
+      "流放夜郎"
+    ],
+    "correct_answer": 2,
+    "trigger": {
+      "type": "reasoning",
+      "auto_start": false
+    },
+    "completion": {
+      "type": "reasoning",
+      "required_clues_count": 6
+    },
+    "reward": {
+      "ending": "ending_001",
+      "exp": 500
+    },
+    "hint": "收集所有线索后，根据线索推理李白一生的转折点"
+  },
+  "quest_010": {
+    "quest_id": "quest_010",
+    "type": "collection",
+    "title": "收集晚年诗词",
+    "description": "收集5首李白晚年创作的诗词",
+    "chapter": 3,
+    "is_main": false,
+    "required_quests": ["quest_007"],
+    "items": ["poem_009", "poem_010", "poem_011", "poem_012", "poem_013"],
+    "required_count": 5,
+    "trigger": {
+      "type": "collection",
+      "auto_start": false
+    },
+    "completion": {
+      "type": "item_collection",
+      "required_count": 5
+    },
+    "reward": {
+      "clue": "clue_009",
+      "exp": 300
+    },
+    "hint": "在老年时期区域寻找李白的晚年诗词"
+  }
+}
+

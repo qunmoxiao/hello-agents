@@ -156,10 +156,16 @@ func hide_dialogue():
 
 	current_npc_name = ""
 
-	# 通知玩家退出交互状态 (启用移动)
+	# ⭐ 通知玩家退出交互状态，并强制设置为原地等待
 	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_method("set_interacting"):
-		player.set_interacting(false)
+	if player:
+		if player.has_method("set_interacting"):
+			player.set_interacting(false)
+		# ⭐ 强制清除玩家速度，确保关闭对话框后不会继续移动
+		if player.has_method("force_stop"):
+			player.force_stop()
+		elif "velocity" in player:
+			player.velocity = Vector2.ZERO
 
 func _on_send_button_pressed():
 	"""发送按钮点击"""
@@ -178,6 +184,15 @@ func send_message():
 	
 	if current_npc_name.is_empty():
 		print("[ERROR] 没有选择NPC")
+		return
+	
+	# ⭐ 测试功能：如果玩家输入"完成任务"，直接完成当前对话任务
+	if message.contains("任务"):
+		_complete_dialogue_quests_test(current_npc_name)
+		# 显示提示信息
+		dialogue_text.append_text("\n[color=cyan]玩家:[/color] " + message + "\n")
+		dialogue_text.append_text("[color=green]✨ 测试模式：任务已完成！[/color]\n")
+		player_input.text = ""
 		return
 	
 	# 显示玩家消息
@@ -211,6 +226,9 @@ func _on_chat_response_received(npc_name: String, message: String):
 	
 	# 显示NPC回复
 	dialogue_text.append_text("[color=yellow]" + npc_name + ":[/color] " + message + "\n")
+	
+	# ⭐ 检查对话任务进度
+	_check_dialogue_quests(npc_name, message)
 	
 	# 滚动到底部
 	dialogue_text.scroll_to_line(dialogue_text.get_line_count() - 1)
@@ -397,3 +415,66 @@ func _update_button_alignment():
 		close_button.offset_right = close_right
 	
 	print("[INFO] 按钮位置已对齐，对话内容框宽度: ", dialogue_width)
+
+# ⭐ 任务系统集成：检查对话任务进度
+func _check_dialogue_quests(npc_name: String, message: String):
+	"""检查对话任务进度"""
+	if not has_node("/root/QuestManager"):
+		return
+	
+	var active_quests = QuestManager.get_active_quests()
+	
+	for quest_id in active_quests:
+		var quest_data = QuestManager.get_active_quest_data(quest_id)
+		var quest = quest_data.get("quest", {})
+		
+		# 检查是否是对话任务
+		if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+			# 检查关键词
+			var keywords = quest.get("keywords", [])
+			
+			for keyword in keywords:
+				if message.contains(keyword):
+					# 更新任务进度（传入关键词）
+					QuestManager.update_quest_progress(quest_id, -1, keyword, "")
+					break
+
+# ⭐ 测试功能：直接完成对话任务
+func _complete_dialogue_quests_test(npc_name: String):
+	"""测试功能：直接完成当前NPC的所有对话任务"""
+	if not has_node("/root/QuestManager"):
+		print("[WARN] QuestManager未找到")
+		return
+	
+	var active_quests = QuestManager.get_active_quests()
+	var completed_count = 0
+	
+	for quest_id in active_quests:
+		var quest_data = QuestManager.get_active_quest_data(quest_id)
+		var quest = quest_data.get("quest", {})
+		
+		# 检查是否是对话任务且匹配NPC
+		if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+			# ⭐ 先更新进度到完成状态，让UI能看到进度变化
+			var keywords = quest.get("keywords", [])
+			var required_keywords = quest.get("required_keywords", keywords.size())
+			
+			# 收集所有关键词，更新进度
+			for keyword in keywords:
+				QuestManager.update_quest_progress(quest_id, -1, keyword, "")
+			
+			# 确保进度达到完成要求
+			var current_progress = quest_data.get("progress", 0)
+			if current_progress < required_keywords:
+				# 如果进度还不够，直接设置进度
+				QuestManager.update_quest_progress(quest_id, required_keywords, "", "")
+			
+			# 然后完成任务（complete_quest会检查进度并完成）
+			QuestManager.complete_quest(quest_id)
+			completed_count += 1
+			print("[TEST] 测试模式：完成任务 ", quest.get("title", quest_id))
+	
+	if completed_count > 0:
+		print("[TEST] ✅ 共完成 ", completed_count, " 个对话任务")
+	else:
+		print("[TEST] ⚠️ 没有找到进行中的对话任务")

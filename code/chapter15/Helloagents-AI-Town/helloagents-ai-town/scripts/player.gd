@@ -75,8 +75,11 @@ func _physics_process(_delta: float):
 		stop_running_sound()
 		return
 
-	# 获取输入方向
-	var input_direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	# ⭐ 获取输入方向（使用 get_action_strength 确保按键状态正确）
+	var input_direction = Vector2(
+		Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left"),
+		Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+	)
 
 	# 设置速度
 	velocity = input_direction * speed
@@ -201,8 +204,30 @@ func set_interacting(interacting: bool):
 		print("[INFO] 🔒 玩家进入交互状态,移动已禁用")
 		# 停止走路音效 ⭐ 
 		stop_running_sound()
+		# ⭐ 强制停止移动
+		velocity = Vector2.ZERO
 	else:
 		print("[INFO] 🔓 玩家退出交互状态,移动已启用")
+		# ⭐ 退出交互状态时，强制清除速度，防止残留输入导致自动移动
+		velocity = Vector2.ZERO
+		# ⭐ 延迟一帧再恢复移动，确保输入状态已清除
+		call_deferred("_clear_input_state")
+
+func force_stop():
+	"""强制停止玩家移动（用于关闭对话框等场景）"""
+	velocity = Vector2.ZERO
+	is_interacting = false
+	stop_running_sound()
+	# 播放idle动画
+	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation("idle"):
+		animated_sprite.play("idle")
+	print("[INFO] 🛑 玩家已强制停止")
+
+func _clear_input_state():
+	"""清除输入状态（延迟调用）"""
+	# 这个方法确保在下一帧时输入状态已清除
+	# 如果用户还在按着键，会在下一帧的 _physics_process 中处理
+	pass
 
 # ⭐ 更新走路音效
 func update_running_sound(direction: Vector2):

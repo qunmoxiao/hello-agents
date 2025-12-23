@@ -1,0 +1,27 @@
+{
+  "clue_001": {
+    "clue_id": "clue_001",
+    "title": "李白25岁离开蜀中",
+    "description": "李白在25岁时离开蜀中，开始了他的游历生涯",
+    "chapter": 1,
+    "category": "event",
+    "related_quests": ["quest_001"],
+    "related_clues": ["clue_002"],
+    "icon": "res://assets/icons/clue_001.png",
+    "unlock_condition": {
+      "type": "quest_completion",
+      "quest_id": "quest_001"
+    }
+  },
+  "clue_002": {
+    "clue_id": "clue_002",
+    "title": "李白在长安的辉煌",
+    "description": "李白在长安时期创作了大量优秀作品",
+    "chapter": 1,
+    "category": "event",
+    "related_quests": ["quest_002"],
+    "related_clues": ["clue_001"],
+    "icon": "res://assets/icons/clue_002.png"
+  }
+}
+

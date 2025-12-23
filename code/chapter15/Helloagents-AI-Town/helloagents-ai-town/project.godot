@@ -21,6 +21,10 @@ Config="*res://scripts/config.gd"
 APIClient="*res://scripts/api_client.gd"
 QuizManager="*res://scripts/quiz_manager.gd"
 RegionManager="*res://scripts/region_manager.gd"
+QuestManager="*res://scripts/quest_manager.gd"
+ClueManager="*res://scripts/clue_manager.gd"
+ItemCollection="*res://scripts/item_collection.gd"
+UIManager="*res://scripts/ui_manager.gd"
 
 [display]
 
