@@ -102,7 +102,8 @@ class NPCAgentManager:
         print("🤖 正在初始化NPC Agent系统...")
 
         try:
-            self.llm = HelloAgentsLLM()
+            # 初始化 LLM，显式设置 max_tokens 为整数，避免 API 报错
+            self.llm = HelloAgentsLLM(max_tokens=2000)
             print("✅ LLM初始化成功")
         except Exception as e:
             print(f"❌ LLM初始化失败: {e}")

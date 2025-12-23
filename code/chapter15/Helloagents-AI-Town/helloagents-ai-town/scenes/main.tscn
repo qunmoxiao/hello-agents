@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://c6guopaun4bag" path="res://assets/interiors/Japanese_Home_1_preview_48x48.png" id="5_tbgi4"]
 [ext_resource type="PackedScene" uid="uid://cm0yi2d074t64" path="res://scenes/dialogue_ui.tscn" id="5_tefeu"]
 [ext_resource type="Texture2D" uid="uid://de7ldlal03lu1" path="res://assets/interiors/7-2011101536234C.jpg" id="5_trceg"]
-[ext_resource type="PackedScene" path="res://scenes/quiz_ui.tscn" id="6_quiz_ui"]
+[ext_resource type="PackedScene" uid="uid://c8y17n1nuiiko" path="res://scenes/quiz_ui.tscn" id="6_quiz_ui"]
 [ext_resource type="Texture2D" uid="uid://ctck55y8mb2ti" path="res://assets/interiors/中年.png" id="8_muem4"]
 [ext_resource type="Texture2D" uid="uid://be80ipi13u6xb" path="res://assets/interiors/小鲸鱼.png" id="8_tipki"]
 [ext_resource type="AudioStream" uid="uid://brhbet2ll8icy" path="res://assets/audio/BGM.ogg" id="9_85g3d"]
@@ -375,7 +375,7 @@ wander_enabled = false
 wander_range = 0.0
 
 [node name="NPC_Li" parent="NPCs" instance=ExtResource("3_jyhfs")]
-position = Vector2(1863.9999, 1094)
+position = Vector2(1671, 1417)
 scale = Vector2(1.079, 1)
 up_direction = Vector2(0.9998615, -0.016647693)
 npc_name = "青年李白"

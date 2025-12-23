@@ -23,7 +23,8 @@ class NPCBatchGenerator:
         print("🎨 正在初始化批量对话生成器...")
         
         try:
-            self.llm = HelloAgentsLLM()
+            # 初始化 LLM，显式设置 max_tokens 为整数，避免 API 报错
+            self.llm = HelloAgentsLLM(max_tokens=2000)
             self.enabled = True
             print("✅ 批量生成器初始化成功")
         except Exception as e:

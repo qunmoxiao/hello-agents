@@ -234,16 +234,10 @@ func get_npc_by_name(npc_name: String) -> Node:
 
 # ⭐ 为青年李白启动外部程序
 func start_external_app_for_lisi():
-	"""为青年李白启动外部程序"""
+	"""为青年李白启动外部程序（跨平台支持）"""
 	print("[INFO] 检测到与青年李白对话，准备启动NetVideoClient")
 	
-	# 检查.app目录是否存在（.app在macOS上是一个目录包）
-	if not DirAccess.dir_exists_absolute(NETVIDEO_CLIENT_PATH):
-		print("[ERROR] NetVideoClient.app不存在: ", NETVIDEO_CLIENT_PATH)
-		dialogue_text.append_text("[color=red]❌ 视频通话客户端未找到[/color]\n")
-		return
-	
-	# 使用外部程序管理器（如果存在）
+	# 使用外部程序管理器（推荐方式，已支持跨平台）
 	if external_app_manager and external_app_manager.has_method("start_netvideo_client_simple"):
 		var success = external_app_manager.start_netvideo_client_simple()
 		if success:
@@ -253,13 +247,28 @@ func start_external_app_for_lisi():
 			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
 			print("[ERROR] ❌ NetVideoClient启动失败")
 	else:
-		# 直接使用open命令作为备选方案（macOS标准方式）
+		# 备用方案：直接调用（跨平台）
+		var os_name = OS.get_name()
+		var path = NETVIDEO_CLIENT_PATH  # 使用旧的常量作为备用
 		var output = []
-		var open_args = PackedStringArray([NETVIDEO_CLIENT_PATH])
-		var exit_code = OS.execute("open", open_args, output)
+		var exit_code = -1
+		
+		if os_name == "macOS" or os_name == "OSX":
+			# macOS: 使用open命令
+			var open_args = PackedStringArray([path])
+			exit_code = OS.execute("open", open_args, output)
+		elif os_name == "Windows":
+			# Windows: 使用start命令
+			var start_args = PackedStringArray(["/B", path])
+			exit_code = OS.execute("cmd.exe", PackedStringArray(["/C", "start"] + start_args), output)
+		else:
+			print("[ERROR] 不支持的操作系统: ", os_name)
+			dialogue_text.append_text("[color=red]❌ 不支持的操作系统[/color]\n")
+			return
+		
 		if exit_code == 0:
 			dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
-			print("[INFO] ✅ NetVideoClient已启动（直接调用open命令）")
+			print("[INFO] ✅ NetVideoClient已启动（备用方式）")
 		else:
 			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
 			print("[ERROR] ❌ NetVideoClient启动失败，退出代码: ", exit_code)
