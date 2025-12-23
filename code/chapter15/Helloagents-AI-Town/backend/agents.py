@@ -170,7 +170,7 @@ class NPCAgentManager:
             config=memory_config,
             user_id=npc_name,  # 使用NPC名字作为user_id
             enable_working=True,  # 启用工作记忆 (短期)
-            enable_episodic=True,  # 启用情景记忆 (长期)
+            enable_episodic=False,  # 启用情景记忆 (长期)
             enable_semantic=False,  # 不需要语义记忆
             enable_perceptual=False  # 不需要感知记忆
         )
@@ -321,7 +321,8 @@ class NPCAgentManager:
                     "interaction_type": "dialogue",
                     "npc_name": npc_name
                 }
-            }
+            },
+            auto_classify=False,
         )
 
         # 保存NPC回复
@@ -340,7 +341,8 @@ class NPCAgentManager:
                     "interaction_type": "dialogue",
                     "npc_name": npc_name
                 }
-            }
+            },
+            auto_classify=False,
         )
 
         print(f"  💾 对话已保存到{npc_name}的记忆中")
@@ -373,12 +375,12 @@ class NPCAgentManager:
             return []
 
         try:
-            # 检索所有记忆
-            memories = memory_manager.retrieve_memories(
-                query="",  # 空查询返回所有记忆
-                memory_types=["working", "episodic"],
-                limit=limit
-            )
+            # 为了快速验证, 这里不依赖向量/关键词检索, 直接从工作记忆中取最近的若干条
+            working_memory = getattr(memory_manager, "memory_types", {}).get("working")
+            if not working_memory:
+                return []
+
+            memories = working_memory.get_recent(limit=limit)
 
             # 转换为字典格式
             memory_list = []
@@ -482,6 +484,74 @@ class NPCAgentManager:
         self.relationship_manager.set_affinity(npc_name, affinity, player_id)
         level = self.relationship_manager.get_affinity_level(affinity)
         print(f"✅ 已设置{npc_name}对玩家的好感度: {affinity:.1f} ({level})")
+
+    def ingest_external_dialogue(
+        self,
+        npc_name: str,
+        speaker: str,
+        content: str,
+        player_id: str = "player",
+        timestamp: Optional[str] = None,
+    ) -> None:
+        """从外部 WebSocket 注入一条对话到工作记忆
+
+        Args:
+            npc_name: NPC 名称, 如 \"青年李白\"
+            speaker: \"player\" 或 \"npc\"
+            content: 对话文本内容
+            player_id: 玩家 ID, 默认 \"player\"
+            timestamp: 可选时间戳(ISO8601), 为空则使用当前时间
+        """
+        if npc_name not in self.memories:
+            log_error(f"外部对话注入失败: NPC '{npc_name}' 不存在")
+            return
+
+        memory_manager = self.memories.get(npc_name)
+        if not memory_manager:
+            log_error(f"外部对话注入失败: NPC '{npc_name}' 没有记忆系统")
+            return
+
+        try:
+            if timestamp:
+                try:
+                    current_time = datetime.fromisoformat(timestamp)
+                except Exception:
+                    current_time = datetime.now()
+            else:
+                current_time = datetime.now()
+
+            if speaker == "player":
+                prefix = "玩家说: "
+                importance = 0.5
+            else:
+                # 统一视为 NPC 本人发言
+                prefix = "我说: "
+                importance = 0.6
+
+            memory_manager.add_memory(
+                content=f"{prefix}{content}",
+                memory_type="working",
+                importance=importance,
+                metadata={
+                    "speaker": speaker,
+                    "player_id": player_id,
+                    "session_id": player_id,
+                    "timestamp": current_time.isoformat(),
+                    "context": {
+                        "interaction_type": "dialogue",
+                        "npc_name": npc_name,
+                        "source": "external_ws",
+                    },
+                },
+                auto_classify=False,
+            )
+
+            log_info(
+                f"🌐 外部对话已注入记忆: npc={npc_name}, "
+                f"speaker={speaker}, content={content[:30]}..."
+            )
+        except Exception as e:
+            log_error(f"外部对话注入异常: npc={npc_name}, error={e}")
 
 # 全局单例
 _npc_manager = None

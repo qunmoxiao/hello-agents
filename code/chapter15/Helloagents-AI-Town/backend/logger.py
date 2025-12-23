@@ -109,6 +109,32 @@ def log_error(message: str):
     """记录错误信息"""
     dialogue_logger.error(message)
 
+
+def log_quiz_generation_start(quiz_id: str, npc_name: str):
+    """记录答题生成开始"""
+    dialogue_logger.info("=" * 60)
+    dialogue_logger.info(f"🧩 答题生成开始: quiz_id={quiz_id}, npc_name={npc_name}")
+
+
+def log_quiz_generation_success(quiz_id: str, npc_name: str, question_count: int):
+    """记录答题生成成功"""
+    dialogue_logger.info(
+        f"✅ 答题生成成功: quiz_id={quiz_id}, npc_name={npc_name}, questions={question_count}"
+    )
+
+
+def log_quiz_generation_failure(
+    quiz_id: str, npc_name: str, reason: str, exception: Exception | None = None
+):
+    """记录答题生成失败原因"""
+    base_msg = (
+        f"❌ 答题生成失败: quiz_id={quiz_id}, npc_name={npc_name}, reason={reason}"
+    )
+    if exception is not None:
+        dialogue_logger.error(f"{base_msg}, exception={exception}")
+    else:
+        dialogue_logger.error(base_msg)
+
 # 启动时记录日志文件位置
 print(f"\n📝 对话日志文件: {LOG_FILE}")
 print(f"📂 日志目录: {LOGS_DIR}\n")

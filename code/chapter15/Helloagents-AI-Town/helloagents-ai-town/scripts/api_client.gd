@@ -6,26 +6,32 @@ signal chat_response_received(npc_name: String, message: String)
 signal chat_error(error_message: String)
 signal npc_status_received(dialogues: Dictionary)
 signal npc_list_received(npcs: Array)
+signal quiz_generated(quiz_id: String, quiz_data: Dictionary)
+signal quiz_generation_failed(quiz_id: String, error_message: String)
 
 # HTTP请求节点
 var http_chat: HTTPRequest
 var http_status: HTTPRequest
 var http_npcs: HTTPRequest
+var http_quiz: HTTPRequest
 
 func _ready():
 	# 创建HTTP请求节点
 	http_chat = HTTPRequest.new()
 	http_status = HTTPRequest.new()
 	http_npcs = HTTPRequest.new()
+	http_quiz = HTTPRequest.new()
 	
 	add_child(http_chat)
 	add_child(http_status)
 	add_child(http_npcs)
+	add_child(http_quiz)
 	
 	# 连接信号
 	http_chat.request_completed.connect(_on_chat_request_completed)
 	http_status.request_completed.connect(_on_status_request_completed)
 	http_npcs.request_completed.connect(_on_npcs_request_completed)
+	http_quiz.request_completed.connect(_on_quiz_request_completed)
 	
 	print("[INFO] API客户端初始化完成")
 
@@ -142,3 +148,56 @@ func _on_npcs_request_completed(_result: int, response_code: int, _headers: Pack
 		var npcs = response["npcs"]
 		print("[INFO] 收到NPC列表: ", npcs.size(), "个NPC")
 		npc_list_received.emit(npcs)
+
+# ==================== 动态答题API ====================
+func get_generated_quiz(quiz_id: String, npc_name: String, count: int = 3) -> void:
+	"""获取指定 NPC 的动态题目"""
+	# 避免并发请求
+	if http_quiz.get_http_client_status() != HTTPClient.STATUS_DISCONNECTED:
+		print("[WARN] 上一次动态答题请求尚未完成, 跳过本次请求")
+		return
+	
+	var query_params = "?npc_name=" + npc_name.uri_encode() \
+		+ "&count=" + str(count) \
+		+ "&quiz_id=" + quiz_id.uri_encode()
+	
+	var url = Config.API_QUIZ_GENERATED + query_params
+	print("[API] GET /quizzes/generated -> ", url)
+	
+	var error = http_quiz.request(url)
+	if error != OK:
+		print("[ERROR] 发送动态答题请求失败: ", error)
+		quiz_generation_failed.emit(quiz_id, "网络请求失败")
+
+
+func _on_quiz_request_completed(_result: int, response_code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	"""处理动态答题响应"""
+	if response_code != 200:
+		print("[ERROR] 动态答题请求失败: HTTP ", response_code)
+		quiz_generation_failed.emit("", "服务器错误: " + str(response_code))
+		return
+	
+	var json := JSON.new()
+	var parse_result := json.parse(body.get_string_from_utf8())
+	if parse_result != OK:
+		print("[ERROR] 解析动态答题响应失败")
+		quiz_generation_failed.emit("", "响应解析失败")
+		return
+	
+	var response = json.data
+	if not response is Dictionary:
+		print("[ERROR] 动态答题响应格式错误")
+		quiz_generation_failed.emit("", "响应格式错误")
+		return
+	
+	var quiz_id := ""
+	if response.has("quiz_id"):
+		quiz_id = str(response["quiz_id"])
+	
+	if not response.has("questions") or not (response["questions"] is Array):
+		print("[WARN] 动态答题返回的 questions 非法, 将回退本地题库")
+		quiz_generation_failed.emit(quiz_id, "questions 非法")
+		return
+	
+	print("[INFO] 收到动态题目: quiz_id=%s, questions=%d" % [quiz_id, response["questions"].size()])
+	quiz_generated.emit(quiz_id, response)
