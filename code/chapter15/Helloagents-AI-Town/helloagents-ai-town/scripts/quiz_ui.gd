@@ -7,6 +7,7 @@ signal quiz_completed(quiz_id: String, passed: bool)
 @export var background_texture: Texture2D = null  # 背景图片（可选）
 @export var option_button_width: float = 500.0  # 选项按钮宽度（默认500，可根据容器宽度调整）
 @export var option_button_font_size: int = 48  # 选项按钮字体大小（默认48）
+@export var option_spacing: int = 18  # 选项按钮之间的间距（默认18像素）
 
 var current_quiz: Dictionary = {}
 var current_questions: Array = []
@@ -99,10 +100,10 @@ func _ready():
 		print("[WARN] CloseButton未找到")
 	
 	# 创建历史查看按钮
-	_create_history_button()
+	#_create_history_button()
 	
 	# 创建历史查看面板
-	_create_history_panel()
+	#_create_history_panel()
 	
 	print("[INFO] 答题UI已初始化 (节点名: %s, 已添加到quiz_ui组)" % name)
 	
@@ -241,8 +242,8 @@ func create_option_buttons(options: Array):
 		print("[ERROR] OptionsContainer未找到")
 		return
 	
-	# 设置容器间距
-	options_container.add_theme_constant_override("separation", 15)
+	# 设置容器间距（使用导出变量，可在编辑器中调整）
+	options_container.add_theme_constant_override("separation", option_spacing)
 	
 	# 确保容器是空的
 	clear_options()
