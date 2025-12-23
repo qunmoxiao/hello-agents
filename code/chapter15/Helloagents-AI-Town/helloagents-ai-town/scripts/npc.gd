@@ -15,6 +15,13 @@ extends CharacterBody2D  # ⭐ 改为CharacterBody2D
 @export var wander_interval_min: float = 3.0  # 最小巡逻间隔(秒)
 @export var wander_interval_max: float = 8.0  # 最大巡逻间隔(秒)
 
+# NPC对话显示配置
+@export var dialogue_font_size: int = 20  # 对话标签字体大小（默认20，比原来的14更大）
+@export var dialogue_label_width: float = 200.0  # 对话标签宽度（默认200，比原来的93更大，减少换行）
+
+# NPC名字标签位置配置
+@export var name_label_offset_y: float = -100.0  # 名字标签垂直偏移（默认-70，比原来的-58更向上，负值表示向上）
+
 # 当前对话内容(从后端获取)
 var current_dialogue: String = ""
 
@@ -43,6 +50,10 @@ func _ready():
 
 	# 设置NPC名字
 	name_label.text = npc_name
+	# 调整名字标签位置（向上移动）
+	var label_height = name_label.offset_bottom - name_label.offset_top
+	name_label.offset_top = name_label_offset_y
+	name_label.offset_bottom = name_label_offset_y + label_height
 
 	# 连接交互区域信号
 	interaction_area.body_entered.connect(_on_body_entered)
@@ -51,6 +62,11 @@ func _ready():
 	# 初始化对话标签
 	dialogue_label.text = ""
 	dialogue_label.visible = false
+	# 设置对话标签字体大小
+	dialogue_label.add_theme_font_size_override("font_size", dialogue_font_size)
+	# 设置对话标签宽度（减少换行）
+	# offset_left 保持不变（29.0），只调整 offset_right 来改变宽度
+	dialogue_label.offset_right = dialogue_label.offset_left + dialogue_label_width
 
 	# 尝试获取交互提示节点 (可选)
 	interaction_hint = get_node_or_null("InteractionHint")
