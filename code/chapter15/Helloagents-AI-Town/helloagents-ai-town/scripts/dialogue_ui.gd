@@ -112,6 +112,13 @@ func start_dialogue(npc_name: String):
 	# 设置NPC信息
 	npc_name_label.text = npc_name
 	npc_title_label.text = Config.NPC_TITLES.get(npc_name, "")
+	
+	# 根据NPC设置对话框色彩风格
+	_setup_dialogue_style(npc_name)
+	
+	# 等待一帧，确保布局已计算，然后更新按钮对齐
+	await get_tree().process_frame
+	_update_button_alignment()
 
 	# 清空对话内容
 	dialogue_text.clear()
@@ -256,3 +263,128 @@ func start_external_app_for_lisi():
 		else:
 			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
 			print("[ERROR] ❌ NetVideoClient启动失败，退出代码: ", exit_code)
+
+func _setup_dialogue_style(npc_name: String):
+	"""根据NPC设置对话框色彩风格"""
+	var style_box = StyleBoxFlat.new()
+	var name_color = Color.WHITE
+	var title_color = Color(0.7, 0.7, 0.7, 1.0)
+	var panel_color = Color(0.1, 0.1, 0.15, 0.95)
+	var border_color = Color(0.3, 0.3, 0.4, 1.0)
+	
+	match npc_name:
+		"青年李白":
+			# 青年时期：清新明亮，绿色、白色、青色
+			name_color = Color(0.2, 0.7, 0.3, 1.0)  # 绿色
+			title_color = Color(0.3, 0.6, 0.4, 1.0)  # 浅绿色
+			panel_color = Color(0.9, 0.95, 0.9, 0.95)  # 浅绿色背景
+			border_color = Color(0.2, 0.6, 0.3, 1.0)  # 深绿色边框
+		"中年李白":
+			# 中年时期：繁华华丽，红色、黄色、金色
+			name_color = Color(0.9, 0.6, 0.2, 1.0)  # 金色/黄色
+			title_color = Color(0.8, 0.5, 0.2, 1.0)  # 浅金色
+			panel_color = Color(0.95, 0.9, 0.85, 0.95)  # 浅金色背景
+			border_color = Color(0.8, 0.5, 0.2, 1.0)  # 金色边框
+		"老年李白":
+			# 老年时期：荒凉萧瑟，灰色、棕色、青色
+			name_color = Color(0.6, 0.5, 0.4, 1.0)  # 棕色
+			title_color = Color(0.5, 0.45, 0.4, 1.0)  # 浅棕色
+			panel_color = Color(0.85, 0.8, 0.75, 0.95)  # 浅棕色/灰色背景
+			border_color = Color(0.5, 0.45, 0.4, 1.0)  # 棕色边框
+		_:
+			# 默认样式
+			name_color = Color.WHITE
+			title_color = Color(0.7, 0.7, 0.7, 1.0)
+			panel_color = Color(0.1, 0.1, 0.15, 0.95)
+			border_color = Color(0.3, 0.3, 0.4, 1.0)
+	
+	# 设置Panel样式
+	style_box.bg_color = panel_color
+	style_box.border_color = border_color
+	style_box.border_width_left = 4
+	style_box.border_width_top = 4
+	style_box.border_width_right = 4
+	style_box.border_width_bottom = 4
+	style_box.corner_radius_top_left = 10
+	style_box.corner_radius_top_right = 10
+	style_box.corner_radius_bottom_left = 0
+	style_box.corner_radius_bottom_right = 0
+	panel.add_theme_stylebox_override("panel", style_box)
+	
+	# 设置NPC名字颜色
+	npc_name_label.add_theme_color_override("font_color", name_color)
+	
+	# 设置NPC标题颜色
+	npc_title_label.add_theme_color_override("font_color", title_color)
+	
+	# 设置对话内容框背景样式（与Panel区分）
+	var dialogue_bg_style = StyleBoxFlat.new()
+	var dialogue_bg_color = Color(1.0, 1.0, 1.0, 0.3)  # 默认半透明白色
+	
+	match npc_name:
+		"青年李白":
+			# 青年时期：更浅的绿色背景
+			dialogue_bg_color = Color(0.95, 1.0, 0.95, 0.4)  # 非常浅的绿色
+		"中年李白":
+			# 中年时期：更浅的金色背景
+			dialogue_bg_color = Color(1.0, 0.98, 0.95, 0.4)  # 非常浅的金色
+		"老年李白":
+			# 老年时期：更浅的棕色背景
+			dialogue_bg_color = Color(0.95, 0.92, 0.9, 0.4)  # 非常浅的棕色
+		_:
+			# 默认：半透明白色
+			dialogue_bg_color = Color(1.0, 1.0, 1.0, 0.3)
+	
+	dialogue_bg_style.bg_color = dialogue_bg_color
+	dialogue_bg_style.border_color = Color(0.5, 0.5, 0.5, 0.3)
+	dialogue_bg_style.border_width_left = 2
+	dialogue_bg_style.border_width_top = 2
+	dialogue_bg_style.border_width_right = 2
+	dialogue_bg_style.border_width_bottom = 2
+	dialogue_bg_style.corner_radius_top_left = 8
+	dialogue_bg_style.corner_radius_top_right = 8
+	dialogue_bg_style.corner_radius_bottom_left = 8
+	dialogue_bg_style.corner_radius_bottom_right = 8
+	dialogue_text.add_theme_stylebox_override("normal", dialogue_bg_style)
+	
+	# 根据对话内容框宽度调整按钮位置
+	_update_button_alignment()
+	
+	print("[INFO] 已设置对话框风格: ", npc_name, " - 颜色主题: ", name_color)
+
+func _update_button_alignment():
+	"""根据对话内容框宽度调整按钮位置，使其对齐"""
+	if not dialogue_text:
+		return
+	
+	var dialogue_width = dialogue_text.size.x
+	if dialogue_width <= 0:
+		# 如果宽度还没计算，使用offset计算
+		dialogue_width = dialogue_text.offset_right - dialogue_text.offset_left
+	
+	# 按钮宽度和间距
+	var button_width = 140.0
+	var button_spacing = 10.0
+	var input_margin_right = 10.0  # 输入框和按钮之间的间距
+	
+	# 计算按钮位置（右对齐）
+	var input_right = dialogue_width - button_width * 2 - button_spacing - input_margin_right
+	var send_left = input_right + input_margin_right
+	var send_right = send_left + button_width
+	var close_left = send_right + button_spacing
+	var close_right = close_left + button_width
+	
+	# 更新输入框宽度
+	if player_input:
+		player_input.offset_right = input_right
+	
+	# 更新按钮位置
+	if send_button:
+		send_button.offset_left = send_left
+		send_button.offset_right = send_right
+	
+	if close_button:
+		close_button.offset_left = close_left
+		close_button.offset_right = close_right
+	
+	print("[INFO] 按钮位置已对齐，对话内容框宽度: ", dialogue_width)

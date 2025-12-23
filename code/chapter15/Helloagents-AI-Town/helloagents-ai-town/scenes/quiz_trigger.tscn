@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://quiz_trigger_scene"]
+
+[ext_resource type="Script" path="res://scripts/quiz_trigger.gd" id="1_quiz_trigger"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
+size = Vector2(200, 100)
+
+[node name="QuizTrigger" type="Area2D"]
+script = ExtResource("1_quiz_trigger")
+quiz_id = "region1_bridge"
+target_region = 2
+hint_text = "按E键开始答题"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_trigger")
+

@@ -13,6 +13,9 @@ var api_client: Node = null
 var status_update_timer: float = 0.0
 
 func _ready():
+	# 添加到main组，方便其他节点查找
+	add_to_group("main")
+	
 	print("[INFO] 主场景初始化")
 	
 	# 获取API客户端
@@ -31,6 +34,27 @@ func _ready():
 	external_app_manager.add_to_group("external_app_manager")
 	get_tree().root.add_child(external_app_manager)
 	print("[INFO] 外部程序管理器已添加到场景树")
+	
+	# ⭐ 连接区域解锁信号
+	if RegionManager:
+		RegionManager.region_unlocked.connect(_on_region_unlocked)
+		print("[INFO] 区域解锁信号已连接")
+	
+	# ⭐ 验证QuizUI是否存在
+	var quiz_ui = get_node_or_null("QuizUI")
+	if quiz_ui:
+		print("[INFO] ✅ QuizUI节点已找到: ", quiz_ui.name)
+		if quiz_ui.is_in_group("quiz_ui"):
+			print("[INFO] ✅ QuizUI已添加到quiz_ui组")
+		else:
+			print("[WARN] ⚠️ QuizUI未添加到quiz_ui组")
+	else:
+		print("[ERROR] ❌ 未找到QuizUI节点")
+
+func _on_region_unlocked(region_id: int):
+	"""区域解锁时的回调"""
+	print("[INFO] 🎉 区域 %d 已解锁！" % region_id)
+	# 可以在这里播放解锁动画或音效
 
 func _process(delta: float):
 	# 定时更新NPC状态

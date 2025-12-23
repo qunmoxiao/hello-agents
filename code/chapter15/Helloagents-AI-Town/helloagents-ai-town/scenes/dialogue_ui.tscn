@@ -7,63 +7,70 @@ visible = false
 script = ExtResource("1_dwk8m")
 
 [node name="Panel" type="Panel" parent="."]
-anchors_preset = 12
+anchors_preset = 6
+anchor_left = 0.0
 anchor_top = 1.0
-anchor_right = 1.0
+anchor_right = 0.65
 anchor_bottom = 1.0
-offset_top = -218.0
-grow_horizontal = 2
+offset_top = -700.0
+grow_horizontal = 0
 grow_vertical = 0
 
 [node name="NPCName" type="Label" parent="Panel"]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 10.0
-offset_right = 85.0
-offset_bottom = 33.0
-theme_override_font_sizes/font_size = 24
+offset_left = 30.0
+offset_top = 15.0
+offset_right = 400.0
+offset_bottom = 75.0
+theme_override_font_sizes/font_size = 60
 text = "NPC名字"
 
 [node name="NPCTitle" type="Label" parent="Panel"]
 layout_mode = 0
 offset_left = 20.0
-offset_top = 40.0
-offset_right = 60.0
-offset_bottom = 63.0
+offset_top = 55.0
+offset_right = 200.0
+offset_bottom = 85.0
+visible = false
 theme_override_colors/font_color = Color(0.45452422, 0.45452428, 0.45452422, 1)
+theme_override_font_sizes/font_size = 32
 text = "职位"
 
 [node name="DialogueText" type="RichTextLabel" parent="Panel"]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 70.0
-offset_right = 1260.0
-offset_bottom = 170.0
+offset_left = 30.0
+offset_top = 85.0
+offset_right = 1630.0
+offset_bottom = 580.0
+theme_override_font_sizes/normal_font_size = 48
 bbcode_enabled = true
 scroll_following = true
 scroll_following_visible_characters = true
 
 [node name="PlayerInput" type="LineEdit" parent="Panel"]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 180.0
-offset_right = 1020.0
-offset_bottom = 220.0
+offset_left = 30.0
+offset_top = 590.0
+offset_right = 1330.0
+offset_bottom = 660.0
+theme_override_font_sizes/font_size = 44
 placeholder_text = "输入消息..."
 clear_button_enabled = true
 
 [node name="SendButton" type="Button" parent="Panel"]
 layout_mode = 0
-offset_left = 1030.0
-offset_top = 180.0
-offset_right = 1130.0
-offset_bottom = 220.0
+offset_left = 1340.0
+offset_top = 590.0
+offset_right = 1480.0
+offset_bottom = 660.0
+theme_override_font_sizes/font_size = 44
 text = "发送"
 
 [node name="CloseButton" type="Button" parent="Panel"]
 layout_mode = 0
-offset_left = 1140.0
-offset_top = 180.0
-offset_right = 1240.0
-offset_bottom = 220.0
+offset_left = 1490.0
+offset_top = 590.0
+offset_right = 1630.0
+offset_bottom = 660.0
+theme_override_font_sizes/font_size = 44
 text = "关闭"

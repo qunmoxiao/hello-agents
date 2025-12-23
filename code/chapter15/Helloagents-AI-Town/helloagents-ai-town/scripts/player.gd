@@ -42,9 +42,26 @@ func _ready():
 	Config.log_info("玩家初始化完成")
 	# 启用相机
 	camera.enabled = true
+	
+	# ⭐ 初始化摄像机限制（初始只显示区域1）
+	if RegionManager:
+		# 延迟更新，确保RegionManager已初始化
+		call_deferred("_init_camera_limits")
+		RegionManager.region_unlocked.connect(_on_region_unlocked)
+	
 	# 播放默认动画
 	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation("idle"):
 		animated_sprite.play("idle")
+
+func _init_camera_limits():
+	"""初始化摄像机限制"""
+	if camera and RegionManager:
+		RegionManager.update_camera_limits()
+		print("[INFO] 摄像机限制已初始化")
+
+func _on_region_unlocked(region_id: int):
+	"""区域解锁时的回调"""
+	print("[INFO] 🎉 区域 %d 已解锁，摄像机限制已更新" % region_id)
 
 func _physics_process(_delta: float):
 	# 如果正在交互,禁用移动
@@ -63,6 +80,20 @@ func _physics_process(_delta: float):
 
 	# 设置速度
 	velocity = input_direction * speed
+	
+	# ⭐ 限制移动到未解锁区域
+	if RegionManager:
+		var new_position = global_position + velocity * _delta
+		var current_region = RegionManager.get_region_from_x(global_position.x)
+		var new_region = RegionManager.get_region_from_x(new_position.x)
+		
+		# 如果尝试移动到未解锁区域，阻止移动
+		if new_region > current_region:
+			if not RegionManager.is_region_unlocked(new_region):
+				# 阻止向右移动（尝试进入未解锁区域）
+				if velocity.x > 0:
+					velocity.x = 0
+					print("[INFO] ⚠️ 区域 %d 尚未解锁，无法进入" % new_region)
 
 	# 移动
 	move_and_slide()
@@ -123,6 +154,10 @@ func _input(event: InputEvent):
 	# 检查E键 (KEY_E = 69)
 	if event is InputEventKey:
 		if event.pressed and not event.echo:
+			# 如果正在交互（如答题），不处理NPC交互
+			if is_interacting:
+				return
+			
 			# 调试: 打印所有按键
 			print("[DEBUG] 按键: ", event.keycode, " (E=69, Enter=4194309)")
 

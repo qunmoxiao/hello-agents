@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Helloagents-AI-Town"
-run/main_scene="uid://b21hnf84ctx7e"
+run/main_scene="uid://vd6f817st20r"
 config/features=PackedStringArray("4.5", "Mobile")
 config/icon="res://icon.svg"
 
@@ -19,6 +19,8 @@ config/icon="res://icon.svg"
 
 Config="*res://scripts/config.gd"
 APIClient="*res://scripts/api_client.gd"
+QuizManager="*res://scripts/quiz_manager.gd"
+RegionManager="*res://scripts/region_manager.gd"
 
 [display]
 
