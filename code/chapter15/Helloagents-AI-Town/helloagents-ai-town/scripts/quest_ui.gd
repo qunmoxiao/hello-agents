@@ -216,9 +216,10 @@ func _get_current_chapter() -> int:
 			return current_region
 		else:
 			# 如果找不到玩家，根据解锁的区域判断
-			var unlocked_regions = RegionManager.unlocked_regions
-			if unlocked_regions.size() > 0:
-				return unlocked_regions[-1]  # 返回最大解锁区域
+			if RegionManager:
+				var unlocked_regions = RegionManager.unlocked_regions
+				if unlocked_regions != null and unlocked_regions.size() > 0:
+					return unlocked_regions[-1]  # 返回最大解锁区域
 	return 1  # 默认返回章节1
 
 func _update_chapter_progress(chapter: int):
@@ -395,27 +396,28 @@ func _create_quest_item(quest_id: String):
 	desc_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))  # 浅白色
 	content_container.add_child(desc_label)
 	
-	# ⭐ 如果是进行中的任务，显示进度信息（简化版：直接显示在描述下方）
+	# ⭐ 如果是进行中的任务，显示进度信息（对话任务和答题任务不显示进度）
 	if is_active:
 		var quest_type = quest.get("type", "")
 		var progress_info = ""
 		
 		match quest_type:
 			"dialogue":
-				var collected_keywords = quest_data.get("collected_keywords", [])
-				var progress = collected_keywords.size()
-				var required_keywords = quest.get("required_keywords", 1)
-				progress_info = "进度: %d/%d 关键词" % [progress, required_keywords]
+				# ⭐ 对话任务不显示进度
+				pass
 			"quiz":
-				var progress = quest_data.get("progress", 0)
-				var required_correct = quest.get("required_correct", 1)
-				progress_info = "进度: %d/%d 正确" % [progress, required_correct]
+				# ⭐ 答题任务不显示进度
+				pass
 			"collection":
-				var collected_items = quest_data.get("collected_items", [])
-				var progress = collected_items.size()
-				var required_count = quest.get("required_count", 1)
-				progress_info = "进度: %d/%d 物品" % [progress, required_count]
-		
+				#var collected_items = quest_data.get("collected_items", [])
+				#var progress = collected_items.size()
+				#var required_count = quest.get("required_count", 1)
+				#progress_info = "进度: %d/%d 物品" % [progress, required_count]
+				pass
+			"delivery":
+				# ⭐ 配送任务不显示进度
+				pass
+
 		if progress_info != "":
 			var progress_label = Label.new()
 			progress_label.text = progress_info

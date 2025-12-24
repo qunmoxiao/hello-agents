@@ -50,10 +50,8 @@ func _ready():
 
 	# 设置NPC名字
 	name_label.text = npc_name
-	# 调整名字标签位置（向上移动）
-	var label_height = name_label.offset_bottom - name_label.offset_top
-	name_label.offset_top = name_label_offset_y
-	name_label.offset_bottom = name_label_offset_y + label_height
+	# ⭐ 隐藏名称标签
+	name_label.visible = false
 
 	# 连接交互区域信号
 	interaction_area.body_entered.connect(_on_body_entered)

@@ -469,7 +469,7 @@ func _start_next_chapter_quests(next_chapter: int):
 		print("[INFO] 🔗 自动启动下一章节任务: ", quest_info["quest"].get("title", quest_info["quest_id"]))
 	
 	# 如果没有自动开始的任务，启动第一个可以启动的任务
-	if auto_start_quests.is_empty() and not normal_quests.is_empty():
+	if auto_start_quests.is_empty() and normal_quests.size() > 0:
 		var quest_info = normal_quests[0]
 		start_quest(quest_info["quest_id"])
 		print("[INFO] 🔗 启动下一章节任务: ", quest_info["quest"].get("title", quest_info["quest_id"]))
