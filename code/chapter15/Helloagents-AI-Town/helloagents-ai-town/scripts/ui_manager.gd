@@ -79,6 +79,11 @@ func _find_node_by_name(node: Node, name: String) -> Node:
 
 func _input(event: InputEvent):
 	"""处理UI快捷键"""
+	# 如果对话框正在打开，直接不处理任何UI快捷键（避免在聊天输入时误触 C/I 等）
+	var dialogue_ui = get_tree().get_first_node_in_group("dialogue_system")
+	if dialogue_ui and dialogue_ui.visible:
+		return
+
 	# 检查是否正在其他交互中（对话、答题等）
 	var player = get_tree().get_first_node_in_group("player")
 	if player and player.has_method("get") and "is_interacting" in player:

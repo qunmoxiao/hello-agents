@@ -80,8 +80,8 @@ func _input(event: InputEvent):
 				print("[DEBUG] 回车键发送消息")
 				return
 
-			# 屏蔽移动键和交互键,防止触发游戏操作 ⭐ WASD键
-			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
+			# 屏蔽移动键和交互键,防止触发游戏操作 ⭐ WASD键 + I键（防止误打开背包）
+			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D, KEY_I]:
 				get_viewport().set_input_as_handled()
 				# 只在第一次屏蔽时打印,避免刷屏
 				match event.keycode:
@@ -97,9 +97,11 @@ func _input(event: InputEvent):
 						print("[DEBUG] 对话框中屏蔽了S键输入")
 					KEY_D:
 						print("[DEBUG] 对话框中屏蔽了D键输入")
+					KEY_I:
+						print("[DEBUG] 对话框中屏蔽了I键输入(防止误打开背包)")
 		else:
 			# ⭐ 处理按键释放事件 - 确保WASD键的释放事件也被屏蔽
-			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
+			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D, KEY_I]:
 				get_viewport().set_input_as_handled()
 				print("[DEBUG] 对话框中屏蔽了按键释放: ", event.keycode)
 
