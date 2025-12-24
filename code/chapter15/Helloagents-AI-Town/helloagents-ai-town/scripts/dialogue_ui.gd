@@ -20,7 +20,8 @@ var api_client: Node = null
 var external_app_manager: ExternalAppManager = null
 
 # ⭐ NetVideoClient路径（备用）
-const NETVIDEO_CLIENT_PATH = "/Users/tal/Souces/webrtc/rtcengine-mac-release/src/bin/macx/NetVideoClient.app"
+const NETVIDEO_CLIENT_PATH_MAC = "/Users/tal/Souces/webrtc/rtcengine-mac-release/src/bin/macx/NetVideoClient.app"
+const NETVIDEO_CLIENT_PATH_WIN = "D:\\Source\\wangxiao10.0\\rtcengine-mac-release\\src\\bin\\win64\\Release\\NetVideoClient.exe"
 
 func _ready():
 	# 添加到对话系统组
@@ -296,7 +297,33 @@ func start_external_app_for_lisi():
 	else:
 		# 备用方案：直接调用（跨平台）
 		var os_name = OS.get_name()
-		var path = NETVIDEO_CLIENT_PATH  # 使用旧的常量作为备用
+		print("[WARN] 外部程序管理器不可用，使用备用方案")
+		print("[DEBUG] 操作系统: ", os_name)
+		
+		# 根据操作系统选择路径
+		var path = ""
+		if os_name == "macOS" or os_name == "OSX":
+			path = NETVIDEO_CLIENT_PATH_MAC
+		elif os_name == "Windows" or os_name.begins_with("Windows"):
+			path = NETVIDEO_CLIENT_PATH_WIN
+		else:
+			print("[ERROR] 不支持的操作系统: ", os_name)
+			dialogue_text.append_text("[color=red]❌ 不支持的操作系统[/color]\n")
+			return
+		
+		print("[DEBUG] 备用方案路径: ", path)
+		var file_exists = false
+		if os_name == "macOS" or os_name == "OSX":
+			file_exists = DirAccess.dir_exists_absolute(path)
+		elif os_name == "Windows" or os_name.begins_with("Windows"):
+			file_exists = FileAccess.file_exists(path)
+		
+		print("[DEBUG] 文件是否存在: ", file_exists)
+		if not file_exists:
+			print("[ERROR] 文件不存在: ", path)
+			dialogue_text.append_text("[color=red]❌ 视频通话客户端文件不存在[/color]\n")
+			return
+		
 		var output = []
 		var exit_code = -1
 		
@@ -304,10 +331,19 @@ func start_external_app_for_lisi():
 			# macOS: 使用open命令
 			var open_args = PackedStringArray([path])
 			exit_code = OS.execute("open", open_args, output)
-		elif os_name == "Windows":
-			# Windows: 使用start命令
-			var start_args = PackedStringArray(["/B", path])
-			exit_code = OS.execute("cmd.exe", PackedStringArray(["/C", "start"] + start_args), output)
+		elif os_name == "Windows" or os_name.begins_with("Windows"):
+			# Windows: 尝试使用OS.create_process
+			print("[DEBUG] 备用方案：尝试使用OS.create_process")
+			var pid = OS.create_process(path, PackedStringArray(), false)
+			if pid > 0:
+				print("[INFO] ✅ 使用create_process成功启动（备用方式），PID: ", pid)
+				dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
+				return
+			else:
+				print("[WARN] create_process失败，尝试start命令")
+				# 使用start命令
+				var cmd_args = PackedStringArray(["/C", "start", "", "/B", path])
+				exit_code = OS.execute("cmd.exe", cmd_args, output, true, false)
 		else:
 			print("[ERROR] 不支持的操作系统: ", os_name)
 			dialogue_text.append_text("[color=red]❌ 不支持的操作系统[/color]\n")
@@ -319,6 +355,8 @@ func start_external_app_for_lisi():
 		else:
 			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
 			print("[ERROR] ❌ NetVideoClient启动失败，退出代码: ", exit_code)
+			if output.size() > 0:
+				print("[ERROR] 错误输出: ", output)
 
 func _setup_dialogue_style(npc_name: String):
 	"""根据NPC设置对话框色彩风格"""

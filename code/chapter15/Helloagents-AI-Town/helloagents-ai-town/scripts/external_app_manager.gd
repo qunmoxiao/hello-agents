@@ -5,9 +5,9 @@ class_name ExternalAppManager
 
 # NetVideoClient路径配置（根据平台自动选择）
 # macOS路径
-const NETVIDEO_CLIENT_PATH_MAC = "/Users/tal/Souces/webrtc/rtcengine-mac-release/src/bin/macx/NetVideoClient.app"
+const NETVIDEO_CLIENT_PATH_MAC = ""
 # Windows路径（请根据实际路径修改）
-const NETVIDEO_CLIENT_PATH_WIN = "C:\\path\\to\\NetVideoClient.exe"
+const NETVIDEO_CLIENT_PATH_WIN = ""
 
 # 单例
 static var instance: ExternalAppManager = null
@@ -21,9 +21,10 @@ func _ready():
 func get_netvideo_client_path() -> String:
 	"""根据当前操作系统返回对应的程序路径"""
 	var os_name = OS.get_name()
+	print("[DEBUG] 检测到的操作系统名称: ", os_name)
 	if os_name == "macOS" or os_name == "OSX":
 		return NETVIDEO_CLIENT_PATH_MAC
-	elif os_name == "Windows":
+	elif os_name == "Windows" or os_name.begins_with("Windows"):
 		return NETVIDEO_CLIENT_PATH_WIN
 	else:
 		print("[WARNING] 未识别的操作系统: ", os_name)
@@ -71,25 +72,61 @@ func start_netvideo_client_simple(args: PackedStringArray = []) -> bool:
 				open_args.append(arg)
 		exit_code = OS.execute("open", open_args, output)
 		
-	elif os_name == "Windows":
+	elif os_name == "Windows" or os_name.begins_with("Windows"):
 		# Windows: 直接执行exe文件
-		# 使用OS.execute直接执行exe，或者使用start命令（推荐，不阻塞）
-		# 方式1: 直接执行（会阻塞，不推荐）
-		# exit_code = OS.execute(path, args, output)
+		print("[DEBUG] Windows启动路径: ", path)
+		var file_exists = FileAccess.file_exists(path)
+		print("[DEBUG] 文件是否存在: ", file_exists)
 		
-		# 方式2: 使用start命令（推荐，不阻塞，立即返回）
-		var start_args = PackedStringArray(["/B", path])
+		if not file_exists:
+			print("[ERROR] 文件不存在，无法启动: ", path)
+			return false
+		
+		# 方式1: 尝试使用OS.create_process（Godot 4.x推荐方式）
+		print("[DEBUG] 尝试使用OS.create_process启动")
+		var all_args = args.duplicate()
+		var pid = OS.create_process(path, all_args, false)
+		print("[DEBUG] create_process返回PID: ", pid)
+		if pid > 0:
+			print("[INFO] ✅ 使用create_process成功启动，PID: ", pid)
+			return true
+		else:
+			print("[WARN] create_process失败 (PID=", pid, ")，尝试备用方式")
+		
+		# 方式2: 直接使用OS.execute执行exe（简单方式）
+		print("[DEBUG] 尝试直接执行exe文件")
+		var exe_args = args.duplicate()
+		exit_code = OS.execute(path, exe_args, output, false, false)
+		print("[DEBUG] 直接执行退出代码: ", exit_code)
+		if exit_code == 0:
+			print("[INFO] ✅ 直接执行成功")
+			return true
+		
+		# 方式3: 使用start命令（备用方式，不阻塞，立即返回）
+		# start命令语法: start "" /B "程序路径" [参数...]
+		print("[DEBUG] 尝试使用start命令启动")
+		# 构建start命令：start "" /B "路径" [参数...]
+		var start_cmd_parts = PackedStringArray()
+		start_cmd_parts.append("")  # 空标题
+		start_cmd_parts.append("/B")  # /B 表示不创建新窗口
+		start_cmd_parts.append(path)  # 路径（OS.execute会自动处理空格）
 		# 添加额外参数
 		for arg in args:
-			start_args.append(arg)
-		exit_code = OS.execute("cmd.exe", PackedStringArray(["/C", "start"] + start_args), output)
+			start_cmd_parts.append(arg)
 		
-		# 方式3: 使用OS.create_process（Godot 4.x推荐方式，如果可用）
-		# var pid = OS.create_process(path, args, false)
-		# if pid > 0:
-		#     exit_code = 0
-		# else:
-		#     exit_code = -1
+		# 构建cmd.exe的参数：cmd.exe /C start "" /B "路径" [参数...]
+		var cmd_args = PackedStringArray()
+		cmd_args.append("/C")
+		cmd_args.append("start")
+		cmd_args.append_array(start_cmd_parts)
+		
+		print("[DEBUG] 执行命令: cmd.exe ", cmd_args)
+		exit_code = OS.execute("cmd.exe", cmd_args, output, true, false)
+		print("[DEBUG] start命令退出代码: ", exit_code)
+		
+		# 打印输出信息用于调试
+		if output.size() > 0:
+			print("[DEBUG] 命令输出: ", output)
 	else:
 		print("[ERROR] 不支持的操作系统: ", os_name)
 		return false
