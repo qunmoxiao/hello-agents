@@ -396,15 +396,35 @@ func _create_quest_item(quest_id: String):
 	desc_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))  # 浅白色
 	content_container.add_child(desc_label)
 	
-	# ⭐ 如果是进行中的任务，显示进度信息（对话任务和答题任务不显示进度）
+	# ⭐ 如果是进行中的任务，显示进度信息
 	if is_active:
 		var quest_type = quest.get("type", "")
 		var progress_info = ""
 		
 		match quest_type:
 			"dialogue":
-				# ⭐ 对话任务不显示进度
-				pass
+				# ⭐ 对话任务：显示关键词进度
+				var collected_keywords = quest_data.get("collected_keywords", [])
+				var all_keywords = quest.get("keywords", [])
+				var required_keywords = quest.get("required_keywords", all_keywords.size())
+				var collected_count = collected_keywords.size()
+				
+				# 显示关键词进度
+				progress_info = "关键词进度: %d/%d" % [collected_count, required_keywords]
+				
+				# 如果已收集关键词，显示已收集的关键词列表
+				if collected_count > 0:
+					var keywords_text = "已收集: " + ", ".join(collected_keywords)
+					progress_info += "\n" + keywords_text
+				
+				# 如果还有未收集的关键词，显示未收集的关键词
+				if collected_count < required_keywords:
+					var remaining_keywords = []
+					for keyword in all_keywords:
+						if keyword not in collected_keywords:
+							remaining_keywords.append(keyword)
+					if remaining_keywords.size() > 0:
+						progress_info += "\n待收集: " + ", ".join(remaining_keywords)
 			"quiz":
 				# ⭐ 答题任务不显示进度
 				pass
@@ -423,6 +443,7 @@ func _create_quest_item(quest_id: String):
 			progress_label.text = progress_info
 			progress_label.add_theme_color_override("font_color", Color(0.6, 0.9, 1.0, 1.0))  # 亮蓝色
 			progress_label.add_theme_font_size_override("font_size", 24)
+			progress_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # 自动换行
 			content_container.add_child(progress_label)
 	
 	# ⭐ 任务提示 - 美化版本
@@ -487,25 +508,26 @@ func _on_chapter_completed(chapter: int, next_region: int):
 
 func _show_chapter_completion_notification(chapter: int, next_region: int):
 	"""显示章节完成通知"""
-	# ⭐ 在任务UI中显示完成提示（在ChapterProgressLabel下方）
+	# ⭐ 在任务UI中显示完成提示（在ChapterProgressLabel下方，ScrollContainer上方）
 	# 创建一个临时的通知标签
 	var notification = Label.new()
-	notification.text = "🎉 章节 %d 完成！\n区域 %d 已解锁！" % [chapter, next_region]
+	notification.text = "🎉 章节 %d 完成！区域 %d 已解锁！" % [chapter, next_region]  # 单行显示，避免重叠
 	notification.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))  # 金色
-	notification.add_theme_font_size_override("font_size", 28)
+	notification.add_theme_font_size_override("font_size", 22)  # 适中的字体大小
 	notification.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	notification.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	notification.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	
-	# ⭐ 添加到Panel（在ChapterProgressLabel下方）
+	# ⭐ 添加到Panel（在ChapterProgressLabel下方，ScrollContainer上方）
 	if panel:
 		# 设置位置（使用anchors确保正确对齐）
 		notification.set_anchors_preset(Control.PRESET_TOP_WIDE)
 		
-		# ⭐ 计算位置：在ChapterProgressLabel下方
-		# ChapterProgressLabel的offset_bottom是110，通知显示在其下方
-		var notification_top = 120.0  # 从110向下移动10px
-		var notification_height = 50.0  # 通知高度
+		# ⭐ 计算位置：在ChapterProgressLabel下方，ScrollContainer上方
+		# ChapterProgressLabel的offset_bottom是110，ScrollContainer的offset_top是140
+		# 通知显示在两者之间，留出足够间距，避免与任务列表重叠
+		var notification_top = 118.0  # 在ChapterProgressLabel下方8px，给任务列表留出空间
+		var notification_height = 20.0  # 通知高度（单行显示，避免重叠）
 		
 		notification.offset_top = notification_top
 		notification.offset_bottom = notification_top + notification_height
