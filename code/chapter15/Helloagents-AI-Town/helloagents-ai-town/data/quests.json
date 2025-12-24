@@ -23,7 +23,7 @@
       "clue": "clue_001",
       "exp": 100
     },
-    "hint": "与青年李白对话，询问他的志向"
+    "hint": "与青年李白对话，询问他的志向以及游历经历"
   },
   "quest_002": {
     "quest_id": "quest_002",
@@ -55,7 +55,7 @@
     "quest_id": "quest_003",
     "type": "dialogue",
     "title": "进入长安",
-    "description": "与中年李白对话，了解他在长安的生活",
+    "description": "与中年李白对话，了解他在长安的生活以及与权贵的交往",
     "chapter": 2,
     "is_main": true,
     "required_quests": [],
