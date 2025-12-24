@@ -17,6 +17,8 @@
 [ext_resource type="PackedScene" path="res://scenes/clue_ui.tscn" id="16_dp3eg"]
 [ext_resource type="PackedScene" path="res://scenes/inventory_ui.tscn" id="17_0ld40"]
 [ext_resource type="PackedScene" path="res://scenes/quiz_trigger.tscn" id="18_dp3eg"]
+[ext_resource type="PackedScene" path="res://scenes/scene_guide_ui.tscn" id="19_scene_guide"]
+[ext_resource type="PackedScene" path="res://scenes/controls_hint_ui.tscn" id="20_controls_hint"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yq6so"]
 atlas = ExtResource("12_muem4")
@@ -317,6 +319,10 @@ script = ExtResource("1_tbgi4")
 [node name="InventoryUI" parent="." instance=ExtResource("17_0ld40")]
 
 [node name="ClueUI" parent="." instance=ExtResource("16_dp3eg")]
+
+[node name="SceneGuideUI" parent="." instance=ExtResource("19_scene_guide")]
+
+[node name="ControlsHintUI" parent="." instance=ExtResource("20_controls_hint")]
 
 [node name="Background2" type="Sprite2D" parent="."]
 position = Vector2(4021, 1039)
