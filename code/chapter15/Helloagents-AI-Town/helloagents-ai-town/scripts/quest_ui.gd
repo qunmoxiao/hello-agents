@@ -403,26 +403,38 @@ func _create_quest_item(quest_id: String):
 		
 		match quest_type:
 			"dialogue":
-				# ⭐ 对话任务：显示关键词进度
+				# ⭐ 对话任务：显示关键词进度（支持同义词组，只显示每组第一个关键词）
 				var collected_keywords = quest_data.get("collected_keywords", [])
 				var all_keywords = quest.get("keywords", [])
-				var required_keywords = quest.get("required_keywords", all_keywords.size())
+				
+				# ⭐ 提取每组同义词的主关键词（第一个关键词）
+				var main_keywords = []
+				for keyword_group in all_keywords:
+					if keyword_group is Array:
+						# 同义词组：取第一个作为主关键词
+						if keyword_group.size() > 0:
+							main_keywords.append(keyword_group[0])
+					else:
+						# 向后兼容：单个字符串
+						main_keywords.append(keyword_group)
+				
+				var required_keywords = quest.get("required_keywords", main_keywords.size())
 				var collected_count = collected_keywords.size()
 				
 				# 显示关键词进度
 				progress_info = "关键词进度: %d/%d" % [collected_count, required_keywords]
 				
-				# 如果已收集关键词，显示已收集的关键词列表
+				# 如果已收集关键词，显示已收集的关键词列表（只显示主关键词）
 				if collected_count > 0:
 					var keywords_text = "已收集: " + ", ".join(collected_keywords)
 					progress_info += "\n" + keywords_text
 				
-				# 如果还有未收集的关键词，显示未收集的关键词
+				# 如果还有未收集的关键词，显示未收集的关键词（只显示主关键词）
 				if collected_count < required_keywords:
 					var remaining_keywords = []
-					for keyword in all_keywords:
-						if keyword not in collected_keywords:
-							remaining_keywords.append(keyword)
+					for main_keyword in main_keywords:
+						if main_keyword not in collected_keywords:
+							remaining_keywords.append(main_keyword)
 					if remaining_keywords.size() > 0:
 						progress_info += "\n待收集: " + ", ".join(remaining_keywords)
 			"quiz":

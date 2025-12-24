@@ -336,6 +336,99 @@ class NPCAgentManager:
             traceback.print_exc()
             return f"抱歉,我现在有点忙,等会儿再聊吧。(错误: {str(e)})"
     
+    def check_keywords_in_response(self, npc_name: str, response: str, keywords: List[List[str]]) -> List[str]:
+        """使用LLM判断回复中是否包含关键词的语义相关表达
+        
+        Args:
+            npc_name: NPC名称
+            response: NPC回复内容
+            keywords: 关键词列表，每个元素是一个同义词组（列表）
+        
+        Returns:
+            匹配到的关键词列表（返回每个同义词组的主关键词，即第一个关键词）
+        """
+        if not keywords or not response:
+            return []
+        
+        # 如果LLM不可用，降级到简单字符串匹配
+        if self.llm is None:
+            return self._simple_keyword_match(response, keywords)
+        
+        try:
+            # 构建关键词字符串（展平所有同义词组）
+            all_keywords = []
+            keyword_groups = []
+            for i, keyword_group in enumerate(keywords):
+                if isinstance(keyword_group, list):
+                    keyword_groups.append(keyword_group)
+                    all_keywords.extend(keyword_group)
+                else:
+                    # 单个字符串也当作同义词组处理
+                    keyword_groups.append([keyword_group])
+                    all_keywords.append(keyword_group)
+            
+            if not all_keywords:
+                return []
+            
+            # 构建提示词
+            keyword_str = "、".join([f"组{i+1}: {', '.join(group)}" for i, group in enumerate(keyword_groups)])
+            prompt = f"""请判断以下NPC回复内容是否包含以下关键词组的语义相关表达：
+
+关键词组：
+{keyword_str}
+
+NPC回复内容：
+{response}
+
+请只返回匹配的关键词组编号（JSON数组格式），如果没有匹配则返回空数组[]。
+例如：如果回复提到了"理想"、"抱负"等，而关键词组1是["志向", "理想", "抱负"]，则返回[1]。
+只返回数字数组，不要其他文字。
+
+返回格式示例：[1, 3] 或 []
+"""
+            
+            # 调用LLM判断
+            llm_response = self.llm.invoke([{"role": "user", "content": prompt}])
+            
+            # 解析JSON结果
+            import json
+            import re
+            # 尝试提取JSON数组
+            json_match = re.search(r'\[[\d,\s]*\]', llm_response)
+            if json_match:
+                matched_groups = json.loads(json_match.group())
+                # 将组编号转换为主关键词
+                matched_keywords = []
+                for group_idx in matched_groups:
+                    if 1 <= group_idx <= len(keyword_groups):
+                        # 返回同义词组的第一个关键词作为主关键词
+                        matched_keywords.append(keyword_groups[group_idx - 1][0])
+                return matched_keywords
+            else:
+                # 如果无法解析，降级到简单匹配
+                print(f"[WARN] 无法解析LLM返回的关键词匹配结果: {llm_response}")
+                return self._simple_keyword_match(response, keywords)
+                
+        except Exception as e:
+            print(f"[WARN] 关键词语义匹配失败: {e}，降级到简单字符串匹配")
+            return self._simple_keyword_match(response, keywords)
+    
+    def _simple_keyword_match(self, response: str, keywords: List[List[str]]) -> List[str]:
+        """简单字符串匹配（降级方案）"""
+        matched_keywords = []
+        for keyword_group in keywords:
+            if isinstance(keyword_group, list):
+                # 检查是否包含同义词组中的任意一个
+                for keyword in keyword_group:
+                    if keyword in response:
+                        matched_keywords.append(keyword_group[0])  # 返回第一个作为主关键词
+                        break
+            else:
+                # 单个字符串
+                if keyword_group in response:
+                    matched_keywords.append(keyword_group)
+        return matched_keywords
+    
     def _build_memory_context(self, memories: List[MemoryItem]) -> str:
         """构建记忆上下文"""
         if not memories:

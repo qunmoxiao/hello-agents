@@ -23,6 +23,7 @@ class ChatResponse(BaseModel):
     npc_title: str = Field(..., description="NPC职位")
     message: str = Field(..., description="NPC回复")
     success: bool = Field(default=True, description="是否成功")
+    matched_keywords: Optional[List[str]] = Field(default_factory=list, description="语义匹配到的关键词列表（如果前端未匹配到）")
     timestamp: Optional[datetime] = Field(default_factory=datetime.now, description="时间戳")
     
     class Config:

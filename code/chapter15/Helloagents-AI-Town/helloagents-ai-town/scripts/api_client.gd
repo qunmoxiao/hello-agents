@@ -2,7 +2,7 @@
 extends Node
 
 # 信号定义
-signal chat_response_received(npc_name: String, message: String)
+signal chat_response_received(npc_name: String, message: String, matched_keywords: Array)
 signal chat_error(error_message: String)
 signal npc_status_received(dialogues: Dictionary)
 signal npc_list_received(npcs: Array)
@@ -79,8 +79,13 @@ func _on_chat_request_completed(_result: int, response_code: int, _headers: Pack
 	if response.has("success") and response["success"]:
 		var npc_name = response["npc_name"]
 		var msg = response["message"]
+		# ⭐ 获取后端语义匹配的关键词（如果存在）
+		var matched_keywords = []
+		if response.has("matched_keywords") and response["matched_keywords"] is Array:
+			matched_keywords = response["matched_keywords"]
+			print("[INFO] 后端语义匹配到关键词: ", matched_keywords)
 		print("[INFO] 收到NPC回复: ", npc_name, " -> ", msg)
-		chat_response_received.emit(npc_name, msg)
+		chat_response_received.emit(npc_name, msg, matched_keywords)
 	else:
 		chat_error.emit("对话失败")
 

@@ -121,4 +121,3 @@ func _on_exit_button_pressed():
 	print("[INFO] 点击退出游戏")
 	# 退出游戏
 	get_tree().quit()
-
