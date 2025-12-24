@@ -342,9 +342,11 @@ limit_bottom = 1900
 
 [node name="InteractSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("3_dqkch")
+volume_db = -28.403
 
 [node name="RunningSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("4_qlg0r")
+volume_db = -24.908
 
 [node name="Camera2D2" type="Camera2D" parent="."]
 position = Vector2(-626, -345)

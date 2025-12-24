@@ -66,6 +66,13 @@ func _on_body_entered(body: Node2D):
 		player_in_range = true
 		print("[INFO] 玩家进入答题触发区域: ", quiz_id)
 		
+		# ⭐ 检查当前章节的对话任务是否完成
+		if not _are_dialogue_quests_completed():
+			# 如果对话任务未完成，不显示答题提示
+			if hint_label:
+				hint_label.visible = false
+			return
+		
 		# 显示提示
 		if hint_label:
 			hint_label.visible = true
@@ -96,6 +103,11 @@ func _input(event: InputEvent):
 		if player and player.has_method("get") and "is_interacting" in player:
 			if player.is_interacting:
 				return  # 如果正在交互，不触发答题
+		
+		# ⭐ 检查当前章节的对话任务是否完成
+		if not _are_dialogue_quests_completed():
+			show_message("请先完成当前章节的对话任务！")
+			return
 		
 		# 检查是否已经答过题
 		if QuizManager and QuizManager.is_quiz_completed(quiz_id):
@@ -162,6 +174,66 @@ func print_all_nodes(node: Node, depth: int):
 	if depth < 3:  # 只打印前3层
 		for child in node.get_children():
 			print_all_nodes(child, depth + 1)
+
+func _are_dialogue_quests_completed() -> bool:
+	"""检查当前章节的所有对话任务是否已完成"""
+	if not has_node("/root/QuestManager"):
+		print("[WARN] QuestManager未找到，无法检查对话任务")
+		return false  # 如果找不到QuestManager，默认不允许触发答题
+	
+	# 获取当前章节
+	var current_chapter = _get_current_chapter()
+	if current_chapter <= 0:
+		print("[WARN] 无法获取当前章节")
+		return false
+	
+	# 获取任务数据库
+	var quest_database = QuestManager.get_quest_database()
+	if quest_database.is_empty():
+		print("[WARN] 任务数据库为空")
+		return false
+	
+	# 查找当前章节的所有对话任务
+	var dialogue_quests = []
+	for quest_id in quest_database:
+		var quest = quest_database[quest_id]
+		var quest_chapter = quest.get("chapter", 1)
+		var quest_type = quest.get("type", "")
+		
+		# 只检查当前章节的对话任务
+		if quest_chapter == current_chapter and quest_type == "dialogue":
+			dialogue_quests.append(quest_id)
+	
+	# 如果没有对话任务，允许触发答题
+	if dialogue_quests.is_empty():
+		print("[INFO] 当前章节没有对话任务，允许触发答题")
+		return true
+	
+	# 检查所有对话任务是否都已完成
+	for quest_id in dialogue_quests:
+		if not QuestManager.is_quest_completed(quest_id):
+			print("[INFO] 对话任务未完成: ", quest_id, "，不允许触发答题")
+			return false
+	
+	print("[INFO] 当前章节所有对话任务已完成，允许触发答题")
+	return true
+
+func _get_current_chapter() -> int:
+	"""获取当前章节（根据玩家位置）"""
+	# 区域1 = 章节1，区域2 = 章节2，区域3 = 章节3
+	if has_node("/root/RegionManager"):
+		var player = get_tree().get_first_node_in_group("player")
+		if player:
+			var player_x = player.global_position.x
+			var current_region = RegionManager.get_region_from_x(player_x)
+			return current_region
+		else:
+			# 如果找不到玩家，根据解锁的区域判断
+			if RegionManager:
+				var unlocked_regions = RegionManager.unlocked_regions
+				if unlocked_regions != null and unlocked_regions.size() > 0:
+					return unlocked_regions[-1]  # 返回最大解锁区域
+	return 1  # 默认返回章节1
 
 func show_message(message: String):
 	"""显示消息（临时实现，可以后续优化）"""
