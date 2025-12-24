@@ -1,0 +1,96 @@
+[gd_scene load_steps=2 format=3 uid="uid://scene_guide_ui_001"]
+
+[ext_resource type="Script" path="res://scripts/scene_guide_ui.gd" id="1_scene_guide_ui"]
+
+[node name="SceneGuideUI" type="CanvasLayer"]
+visible = false
+script = ExtResource("1_scene_guide_ui")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="Panel" type="Panel" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -600.0
+offset_top = -450.0
+offset_right = 600.0
+offset_bottom = 450.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="TitleLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 2
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+anchor_bottom = 0.0
+offset_left = -300.0
+offset_top = 30.0
+offset_right = 300.0
+offset_bottom = 100.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 60
+text = "场景指南"
+horizontal_alignment = 1
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 30.0
+offset_top = 120.0
+offset_right = -30.0
+offset_bottom = -100.0
+
+[node name="ContentContainer" type="VBoxContainer" parent="Control/Panel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="CloseButton" type="Button" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -60.0
+offset_right = -30.0
+offset_bottom = -30.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_font_sizes/font_size = 36
+text = "关闭 (B/ESC)"
+
+[node name="HintLabel" type="Label" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 2
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -60.0
+offset_right = 200.0
+offset_bottom = -30.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_font_sizes/font_size = 32
+text = "按B键或ESC键关闭"
+horizontal_alignment = 1
+

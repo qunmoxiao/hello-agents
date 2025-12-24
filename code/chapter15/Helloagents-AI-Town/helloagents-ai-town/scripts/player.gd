@@ -10,6 +10,9 @@ var nearby_npc: Node = null
 # 交互状态 (交互时禁用移动)
 var is_interacting: bool = false
 
+# ⭐ 刚退出交互状态的标志，用于忽略第一帧的输入（防止残留按键状态）
+var just_exited_interaction: bool = false
+
 # 节点引用
 @onready var animated_sprite: AnimatedSprite2D = $AnimatedSprite2D
 @onready var camera: Camera2D = $Camera2D
@@ -75,8 +78,19 @@ func _physics_process(_delta: float):
 		stop_running_sound()
 		return
 
-	# 获取输入方向
-	var input_direction = Input.get_vector("ui_left", "ui_right", "ui_up", "ui_down")
+	# ⭐ 如果刚退出交互状态，忽略第一帧的输入（防止残留按键状态导致自动移动）
+	if just_exited_interaction:
+		velocity = Vector2.ZERO
+		move_and_slide()
+		just_exited_interaction = false
+		print("[DEBUG] 忽略退出交互后的第一帧输入，防止残留按键状态")
+		return
+
+	# ⭐ 获取输入方向（使用 get_action_strength 确保按键状态正确）
+	var input_direction = Vector2(
+		Input.get_action_strength("ui_right") - Input.get_action_strength("ui_left"),
+		Input.get_action_strength("ui_down") - Input.get_action_strength("ui_up")
+	)
 
 	# 设置速度
 	velocity = input_direction * speed
@@ -201,8 +215,36 @@ func set_interacting(interacting: bool):
 		print("[INFO] 🔒 玩家进入交互状态,移动已禁用")
 		# 停止走路音效 ⭐ 
 		stop_running_sound()
+		# ⭐ 强制停止移动
+		velocity = Vector2.ZERO
+		# 清除刚退出交互的标志
+		just_exited_interaction = false
 	else:
 		print("[INFO] 🔓 玩家退出交互状态,移动已启用")
+		# ⭐ 退出交互状态时，强制清除速度，防止残留输入导致自动移动
+		velocity = Vector2.ZERO
+		# ⭐ 设置标志，在下一帧忽略输入（防止残留按键状态）
+		just_exited_interaction = true
+		# ⭐ 延迟一帧再恢复移动，确保输入状态已清除
+		call_deferred("_clear_input_state")
+
+func force_stop():
+	"""强制停止玩家移动（用于关闭对话框等场景）"""
+	velocity = Vector2.ZERO
+	is_interacting = false
+	# ⭐ 设置标志，在下一帧忽略输入（防止残留按键状态）
+	just_exited_interaction = true
+	stop_running_sound()
+	# 播放idle动画
+	if animated_sprite.sprite_frames != null and animated_sprite.sprite_frames.has_animation("idle"):
+		animated_sprite.play("idle")
+	print("[INFO] 🛑 玩家已强制停止")
+
+func _clear_input_state():
+	"""清除输入状态（延迟调用）"""
+	# 这个方法确保在下一帧时输入状态已清除
+	# 如果用户还在按着键，会在下一帧的 _physics_process 中处理
+	pass
 
 # ⭐ 更新走路音效
 func update_running_sound(direction: Vector2):

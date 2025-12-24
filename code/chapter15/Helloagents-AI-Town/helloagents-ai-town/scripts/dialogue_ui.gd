@@ -58,43 +58,50 @@ func _input(event: InputEvent):
 	if not visible:
 		return
 
-	if event is InputEventKey and event.pressed and not event.echo:
-		# ESC键 - 关闭对话框 
-		if event.keycode == KEY_ESCAPE:
-			hide_dialogue()
-			get_viewport().set_input_as_handled()
-			print("[DEBUG] ESC键关闭对话框")
-			return
-
-		# 回车键 - 发送消息 (仅当输入框有焦点时) 
-		# 注意: LineEdit的text_submitted信号已经处理了回车,这里只是额外保险
-		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-			# 如果输入框有焦点,让LineEdit自己处理
-			if player_input.has_focus():
+	if event is InputEventKey and not event.echo:
+		# ⭐ 处理按键按下事件
+		if event.pressed:
+			# ESC键 - 关闭对话框 
+			if event.keycode == KEY_ESCAPE:
+				hide_dialogue()
+				get_viewport().set_input_as_handled()
+				print("[DEBUG] ESC键关闭对话框")
 				return
-			# 否则手动发送
-			send_message()
-			get_viewport().set_input_as_handled()
-			print("[DEBUG] 回车键发送消息")
-			return
 
-		# 屏蔽移动键和交互键,防止触发游戏操作 ⭐ WASD键
-		if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
-			get_viewport().set_input_as_handled()
-			# 只在第一次屏蔽时打印,避免刷屏
-			match event.keycode:
-				KEY_E:
-					print("[DEBUG] 对话框中屏蔽了E键输入")
-				KEY_SPACE:
-					print("[DEBUG] 对话框中屏蔽了空格键输入")
-				KEY_W:
-					print("[DEBUG] 对话框中屏蔽了W键输入")
-				KEY_A:
-					print("[DEBUG] 对话框中屏蔽了A键输入")
-				KEY_S:
-					print("[DEBUG] 对话框中屏蔽了S键输入")
-				KEY_D:
-					print("[DEBUG] 对话框中屏蔽了D键输入")
+			# 回车键 - 发送消息 (仅当输入框有焦点时) 
+			# 注意: LineEdit的text_submitted信号已经处理了回车,这里只是额外保险
+			if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+				# 如果输入框有焦点,让LineEdit自己处理
+				if player_input.has_focus():
+					return
+				# 否则手动发送
+				send_message()
+				get_viewport().set_input_as_handled()
+				print("[DEBUG] 回车键发送消息")
+				return
+
+			# 屏蔽移动键和交互键,防止触发游戏操作 ⭐ WASD键
+			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
+				get_viewport().set_input_as_handled()
+				# 只在第一次屏蔽时打印,避免刷屏
+				match event.keycode:
+					KEY_E:
+						print("[DEBUG] 对话框中屏蔽了E键输入")
+					KEY_SPACE:
+						print("[DEBUG] 对话框中屏蔽了空格键输入")
+					KEY_W:
+						print("[DEBUG] 对话框中屏蔽了W键输入")
+					KEY_A:
+						print("[DEBUG] 对话框中屏蔽了A键输入")
+					KEY_S:
+						print("[DEBUG] 对话框中屏蔽了S键输入")
+					KEY_D:
+						print("[DEBUG] 对话框中屏蔽了D键输入")
+		else:
+			# ⭐ 处理按键释放事件 - 确保WASD键的释放事件也被屏蔽
+			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
+				get_viewport().set_input_as_handled()
+				print("[DEBUG] 对话框中屏蔽了按键释放: ", event.keycode)
 
 func start_dialogue(npc_name: String):
 	"""开始与NPC对话"""
@@ -148,6 +155,19 @@ func hide_dialogue():
 	"""隐藏对话框"""
 	visible = false
 
+	# ⭐ 释放输入框焦点，防止残留按键状态
+	if player_input and player_input.has_focus():
+		player_input.release_focus()
+		print("[DEBUG] 已释放输入框焦点")
+
+	# ⭐ 强制释放所有移动相关的输入动作，防止残留按键状态
+	# 这可以确保即使按键状态被保留，也不会影响玩家移动
+	Input.action_release("ui_up")
+	Input.action_release("ui_down")
+	Input.action_release("ui_left")
+	Input.action_release("ui_right")
+	print("[DEBUG] 已强制释放所有移动输入动作")
+
 	# 通知NPC退出交互状态 (恢复移动) 
 	if current_npc_name != "":
 		var npc = get_npc_by_name(current_npc_name)
@@ -156,10 +176,23 @@ func hide_dialogue():
 
 	current_npc_name = ""
 
-	# 通知玩家退出交互状态 (启用移动)
+	# ⭐ 通知玩家退出交互状态，并强制设置为原地等待
 	var player = get_tree().get_first_node_in_group("player")
-	if player and player.has_method("set_interacting"):
-		player.set_interacting(false)
+	if player:
+		if player.has_method("set_interacting"):
+			player.set_interacting(false)
+		# ⭐ 强制清除玩家速度，确保关闭对话框后不会继续移动
+		if player.has_method("force_stop"):
+			player.force_stop()
+		elif "velocity" in player:
+			player.velocity = Vector2.ZERO
+		
+		# ⭐ 延迟一帧再恢复移动，确保输入状态已清除（特别是WASD键）
+		# 这样可以避免外部程序或输入焦点切换导致的残留按键状态
+		await get_tree().process_frame
+		if player and player.has_method("force_stop"):
+			player.force_stop()
+		print("[DEBUG] 对话框已关闭，输入状态已清除")
 
 func _on_send_button_pressed():
 	"""发送按钮点击"""
@@ -178,6 +211,15 @@ func send_message():
 	
 	if current_npc_name.is_empty():
 		print("[ERROR] 没有选择NPC")
+		return
+	
+	# ⭐ 测试功能：如果玩家输入"完成任务"，直接完成当前对话任务
+	if message.contains("任务"):
+		_complete_dialogue_quests_test(current_npc_name)
+		# 显示提示信息
+		dialogue_text.append_text("\n[color=cyan]玩家:[/color] " + message + "\n")
+		dialogue_text.append_text("[color=green]✨ 测试模式：任务已完成！[/color]\n")
+		player_input.text = ""
 		return
 	
 	# 显示玩家消息
@@ -211,6 +253,9 @@ func _on_chat_response_received(npc_name: String, message: String):
 	
 	# 显示NPC回复
 	dialogue_text.append_text("[color=yellow]" + npc_name + ":[/color] " + message + "\n")
+	
+	# ⭐ 检查对话任务进度
+	_check_dialogue_quests(npc_name, message)
 	
 	# 滚动到底部
 	dialogue_text.scroll_to_line(dialogue_text.get_line_count() - 1)
@@ -397,3 +442,66 @@ func _update_button_alignment():
 		close_button.offset_right = close_right
 	
 	print("[INFO] 按钮位置已对齐，对话内容框宽度: ", dialogue_width)
+
+# ⭐ 任务系统集成：检查对话任务进度
+func _check_dialogue_quests(npc_name: String, message: String):
+	"""检查对话任务进度"""
+	if not has_node("/root/QuestManager"):
+		return
+	
+	var active_quests = QuestManager.get_active_quests()
+	
+	for quest_id in active_quests:
+		var quest_data = QuestManager.get_active_quest_data(quest_id)
+		var quest = quest_data.get("quest", {})
+		
+		# 检查是否是对话任务
+		if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+			# 检查关键词
+			var keywords = quest.get("keywords", [])
+			
+			for keyword in keywords:
+				if message.contains(keyword):
+					# 更新任务进度（传入关键词）
+					QuestManager.update_quest_progress(quest_id, -1, keyword, "")
+					break
+
+# ⭐ 测试功能：直接完成对话任务
+func _complete_dialogue_quests_test(npc_name: String):
+	"""测试功能：直接完成当前NPC的所有对话任务"""
+	if not has_node("/root/QuestManager"):
+		print("[WARN] QuestManager未找到")
+		return
+	
+	var active_quests = QuestManager.get_active_quests()
+	var completed_count = 0
+	
+	for quest_id in active_quests:
+		var quest_data = QuestManager.get_active_quest_data(quest_id)
+		var quest = quest_data.get("quest", {})
+		
+		# 检查是否是对话任务且匹配NPC
+		if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+			# ⭐ 先更新进度到完成状态，让UI能看到进度变化
+			var keywords = quest.get("keywords", [])
+			var required_keywords = quest.get("required_keywords", keywords.size())
+			
+			# 收集所有关键词，更新进度
+			for keyword in keywords:
+				QuestManager.update_quest_progress(quest_id, -1, keyword, "")
+			
+			# 确保进度达到完成要求
+			var current_progress = quest_data.get("progress", 0)
+			if current_progress < required_keywords:
+				# 如果进度还不够，直接设置进度
+				QuestManager.update_quest_progress(quest_id, required_keywords, "", "")
+			
+			# 然后完成任务（complete_quest会检查进度并完成）
+			QuestManager.complete_quest(quest_id)
+			completed_count += 1
+			print("[TEST] 测试模式：完成任务 ", quest.get("title", quest_id))
+	
+	if completed_count > 0:
+		print("[TEST] ✅ 共完成 ", completed_count, " 个对话任务")
+	else:
+		print("[TEST] ⚠️ 没有找到进行中的对话任务")
