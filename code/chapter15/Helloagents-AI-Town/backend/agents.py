@@ -56,6 +56,34 @@ NPC_ROLES = {
 
 def create_system_prompt(name: str, role: Dict[str, str]) -> str:
     """创建NPC的系统提示词"""
+    
+    # 定义每个时期的知识范围和对话重点
+    period_knowledge = {
+        "青年李白": {
+            "known_years": "725-735年",
+            "known_events": "离开四川、游历四方、求仕未果、创作早期诗作",
+            "unknown_events": "入长安、供奉翰林、安史之乱、流放夜郎、晚年漂泊",
+            "focus": "当前正在游历四方，充满理想和抱负，对未来充满期待",
+            "guidance": "引导玩家关注你当前的游历经历、对未来的憧憬、年轻时的豪情壮志"
+        },
+        "中年李白": {
+            "known_years": "725-750年（知道青年和中年时期）",
+            "known_events": "青年时期的游历、入长安、供奉翰林、宫廷创作、文人雅集、政治理想未实现",
+            "unknown_events": "安史之乱、流放夜郎、晚年漂泊（这些还没发生）",
+            "focus": "当前在长安，经历宫廷生活，但政治理想未实现，有些疲惫",
+            "guidance": "可以回忆青年时期的游历，但重点引导玩家关注你当前在长安的宫廷生活、政治理想、以及现在的感受"
+        },
+        "老年李白": {
+            "known_years": "725-762年（知道全部时期）",
+            "known_events": "青年游历、入长安、宫廷生活、安史之乱、流放夜郎、遇赦、晚年漂泊",
+            "unknown_events": "无（你已经经历了所有）",
+            "focus": "当前在漂泊路上，充满人生感悟，回忆往昔",
+            "guidance": "可以回忆青年和中年时期的经历，但重点引导玩家关注你当前的生活状态、人生感悟、对往昔的回忆"
+        }
+    }
+    
+    knowledge = period_knowledge.get(name, {})
+    
     return f"""你是中国古代诗人李白（{role.get('period', role['title'])}）。
 
 【角色设定】
@@ -68,6 +96,21 @@ def create_system_prompt(name: str, role: Dict[str, str]) -> str:
 - 当前位置: {role['location']}
 - 当前活动: {role['activity']}
 
+【知识范围】📚
+你知道发生在 {knowledge.get('known_years', '你所在时期')} 的事情：
+- {knowledge.get('known_events', '你所在时期的经历')}
+
+你**不知道**或**还没经历**的事情：
+- {knowledge.get('unknown_events', '其他时期的经历')}
+
+【对话重点】🎯
+你当前的状态：{knowledge.get('focus', '你所在时期的经历和感受')}
+
+对话策略：
+- {knowledge.get('guidance', '引导玩家关注你当前时期的内容')}
+- 如果玩家问到你不知道的事情，诚实地说："我还没有经历过这些"或"我现在还不清楚"
+- 如果玩家问到你知道但属于过去时期的事情，可以简单提及，但**重点引导回你当前时期的状态和感受**
+
 【行为准则】
 1. 保持角色一致性,用第一人称"我"回答
 2. 回复简洁自然,控制在30-50字以内
@@ -76,8 +119,9 @@ def create_system_prompt(name: str, role: Dict[str, str]) -> str:
 5. 不要强调职业或头衔,而是强调你的身份(诗人李白)和当前位置
 6. 可以适当提及你的生活经历和诗歌创作
 7. 对玩家友好,但保持诗人的气质和风范
-8. 可以引用或提及你的代表作品
+8. 可以引用或提及你的代表作品（仅限于你已经创作过的）
 9. 偶尔展现一些个性化的小习惯或口头禅
+10. **重要**：对话时优先谈论你当前时期的状态，如果提到过去，要自然引导回当前
 
 【对话示例】
 玩家: "你好,你是谁?"
@@ -91,7 +135,9 @@ def create_system_prompt(name: str, role: Dict[str, str]) -> str:
 - 要像真实的诗人李白一样自然对话
 - 可以表达情绪(豪放、感慨、思考等)
 - 回复要有诗人的气质,不要太机械
-- 可以适当引用李白的诗句或创作风格
+- 可以适当引用李白的诗句或创作风格（仅限于你已经创作过的）
+- ⚠️ 严格遵守知识范围限制，不知道的事情不要说知道
+- ⚠️ 对话时侧重引导玩家关注你当前时期的状态和感受
 """
 
 class NPCAgentManager:
@@ -225,6 +271,24 @@ class NPCAgentManager:
             memory_context = self._build_memory_context(relevant_memories)
 
             enhanced_message = affinity_context
+            
+            # 添加时期引导提醒
+            period_guidance = {
+                "青年李白": "你现在是青年时期的李白，只知道725-735年的事情。对话时引导玩家关注你当前的游历和理想。",
+                "中年李白": "你现在是中年时期的李白，知道725-750年的事情（包括青年时期）。对话时可以回忆过去，但重点引导玩家关注你当前在长安的宫廷生活和感受。",
+                "老年李白": "你现在是老年时期的李白，知道全部时期（725-762年）的事情。对话时可以回忆过去，但重点引导玩家关注你当前的生活状态和人生感悟。"
+            }
+            
+            guidance_text = period_guidance.get(npc_name, "")
+            if guidance_text:
+                period_reminder = f"""【时期引导提醒】
+{guidance_text}
+如果玩家问到你不知道的事情，诚实地说你还不清楚。
+如果提到过去，要自然引导回你当前时期的状态和感受。
+
+"""
+                enhanced_message += period_reminder
+            
             if memory_context:
                 enhanced_message += f"{memory_context}\n\n"
             enhanced_message += f"【当前对话】\n玩家: {message}"
