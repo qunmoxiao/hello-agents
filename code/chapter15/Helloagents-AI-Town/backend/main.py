@@ -1,7 +1,9 @@
 """赛博小镇 FastAPI 后端主程序"""
 
 import json
+import os
 from contextlib import asynccontextmanager
+from typing import List, Dict, Any
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
@@ -112,6 +114,45 @@ async def root():
         }
     }
 
+def get_quest_keywords_for_npc(npc_name: str) -> List[List[str]]:
+    """获取指定NPC的所有任务关键词（同义词组）
+    
+    Args:
+        npc_name: NPC名称
+    
+    Returns:
+        关键词列表，每个元素是一个同义词组（列表）
+    """
+    try:
+        # 获取 quests.json 路径（相对于 backend 目录）
+        quests_path = os.path.join(os.path.dirname(__file__), "..", "helloagents-ai-town", "data", "quests.json")
+        quests_path = os.path.normpath(quests_path)
+        
+        if not os.path.exists(quests_path):
+            print(f"[WARN] 任务文件不存在: {quests_path}")
+            return []
+        
+        with open(quests_path, "r", encoding="utf-8") as f:
+            quests_data = json.load(f)
+        
+        keywords = []
+        for quest_id, quest in quests_data.items():
+            # 只获取对话任务且匹配NPC的关键词
+            if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+                quest_keywords = quest.get("keywords", [])
+                for keyword_group in quest_keywords:
+                    # 支持两种格式：字符串或数组
+                    if isinstance(keyword_group, list):
+                        keywords.append(keyword_group)
+                    else:
+                        # 向后兼容：单个字符串也当作数组处理
+                        keywords.append([keyword_group])
+        
+        return keywords
+    except Exception as e:
+        print(f"[WARN] 获取任务关键词失败: {e}")
+        return []
+
 @app.get("/health")
 async def health_check():
     """健康检查"""
@@ -137,10 +178,26 @@ async def chat_with_npc(request: ChatRequest):
         # 调用NPC Agent处理对话
         response_text = npc_mgr.chat(request.npc_name, request.message)
         
+        # ⭐ 获取该NPC的任务关键词，进行语义匹配（仅当前端未匹配到时使用）
+        # 注意：这里我们总是进行语义匹配，但前端会先尝试同义词匹配
+        # 如果前端匹配成功，前端会忽略后端返回的 matched_keywords
+        keywords = get_quest_keywords_for_npc(request.npc_name)
+        matched_keywords = []
+        if keywords:
+            # 调用语义匹配（如果LLM可用）
+            matched_keywords = npc_mgr.check_keywords_in_response(
+                request.npc_name,
+                response_text,
+                keywords
+            )
+            if matched_keywords:
+                print(f"[INFO] 后端语义匹配到关键词: {matched_keywords}")
+        
         return ChatResponse(
             npc_name=request.npc_name,
             npc_title=npc_info["title"],
             message=response_text,
+            matched_keywords=matched_keywords,
             success=True
         )
         

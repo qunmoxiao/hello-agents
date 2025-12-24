@@ -240,8 +240,13 @@ func send_message():
 	else:
 		print("[ERROR] API客户端未找到")
 
-func _on_chat_response_received(npc_name: String, message: String):
-	"""收到NPC回复"""
+func _on_chat_response_received(npc_name: String, message: String, matched_keywords: Array = []):
+	"""收到NPC回复
+	Args:
+		npc_name: NPC名称
+		message: NPC回复消息
+		matched_keywords: 后端语义匹配返回的关键词列表（可选）
+	"""
 	if npc_name != current_npc_name:
 		return
 	
@@ -257,8 +262,8 @@ func _on_chat_response_received(npc_name: String, message: String):
 	# 显示NPC回复
 	dialogue_text.append_text("[color=yellow]" + npc_name + ":[/color] " + message + "\n")
 	
-	# ⭐ 检查对话任务进度
-	_check_dialogue_quests(npc_name, message)
+	# ⭐ 检查对话任务进度（传入后端匹配的关键词）
+	_check_dialogue_quests(npc_name, message, matched_keywords)
 	
 	# 滚动到底部
 	dialogue_text.scroll_to_line(dialogue_text.get_line_count() - 1)
@@ -483,9 +488,14 @@ func _update_button_alignment():
 	
 	print("[INFO] 按钮位置已对齐，对话内容框宽度: ", dialogue_width)
 
-# ⭐ 任务系统集成：检查对话任务进度
-func _check_dialogue_quests(npc_name: String, message: String):
-	"""检查对话任务进度"""
+# ⭐ 任务系统集成：检查对话任务进度（支持同义词组匹配）
+func _check_dialogue_quests(npc_name: String, message: String, backend_matched_keywords: Array = []):
+	"""检查对话任务进度
+	Args:
+		npc_name: NPC名称
+		message: NPC回复消息
+		backend_matched_keywords: 后端语义匹配返回的关键词列表（可选）
+	"""
 	if not has_node("/root/QuestManager"):
 		return
 	
@@ -497,14 +507,55 @@ func _check_dialogue_quests(npc_name: String, message: String):
 		
 		# 检查是否是对话任务
 		if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
-			# 检查关键词
+			# 检查关键词（支持同义词组）
 			var keywords = quest.get("keywords", [])
+			var matched_keyword = null
+			var frontend_matched = false
 			
-			for keyword in keywords:
-				if message.contains(keyword):
-					# 更新任务进度（传入关键词）
-					QuestManager.update_quest_progress(quest_id, -1, keyword, "")
+			# ⭐ 第一步：前端同义词匹配
+			for keyword_group in keywords:
+				# 支持两种格式：字符串（向后兼容）或数组（同义词组）
+				var keyword_list = []
+				if keyword_group is Array:
+					keyword_list = keyword_group
+				else:
+					# 向后兼容：单个字符串也当作数组处理
+					keyword_list = [keyword_group]
+				
+				# 检查是否包含同义词组中的任意一个
+				for keyword in keyword_list:
+					if message.contains(keyword):
+						matched_keyword = keyword_list[0]  # 使用第一个关键词作为主关键词
+						frontend_matched = true
+						print("[INFO] 前端匹配到关键词（同义词）: ", matched_keyword, " (同义词组: ", keyword_list, ")")
+						break
+				
+				if frontend_matched:
 					break
+			
+			# ⭐ 第二步：如果前端没匹配到，检查后端语义匹配结果
+			if not frontend_matched and backend_matched_keywords.size() > 0:
+				# 遍历关键词组，找到后端匹配的关键词对应的主关键词
+				for keyword_group in keywords:
+					var keyword_list = []
+					if keyword_group is Array:
+						keyword_list = keyword_group
+					else:
+						keyword_list = [keyword_group]
+					
+					# 检查后端匹配的关键词是否在这个同义词组中
+					for backend_keyword in backend_matched_keywords:
+						if backend_keyword in keyword_list:
+							matched_keyword = keyword_list[0]  # 使用第一个关键词作为主关键词
+							print("[INFO] 后端语义匹配到关键词: ", matched_keyword, " (后端返回: ", backend_keyword, ")")
+							break
+					
+					if matched_keyword:
+						break
+			
+			# 如果匹配到关键词，更新任务进度
+			if matched_keyword:
+				QuestManager.update_quest_progress(quest_id, -1, matched_keyword, "")
 
 # ⭐ 测试功能：直接完成对话任务
 func _complete_dialogue_quests_test(npc_name: String):

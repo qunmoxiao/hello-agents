@@ -234,7 +234,7 @@ size = Vector2(455.5699, 84.19971)
 size = Vector2(873.0325, 110.729004)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_dp3eg"]
-size = Vector2(407.73816, 59)
+size = Vector2(695.2357, 59)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_0ld40"]
 size = Vector2(635.6011, 85.54968)
@@ -255,13 +255,13 @@ size = Vector2(82.85248, 268.986)
 size = Vector2(573.6492, 105.23761)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_a8y0u"]
-size = Vector2(100.55446, 311.14258)
+size = Vector2(100.55446, 333.35864)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jkv2x"]
 size = Vector2(109.5, 67)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_jbj1t"]
-size = Vector2(372.5, 65)
+size = Vector2(365.25, 65)
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_yc10j"]
 size = Vector2(798.375, 82.5)
@@ -406,7 +406,7 @@ position = Vector2(1191, 2199)
 [node name="TopWall" type="StaticBody2D" parent="Walls2"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Walls2/TopWall"]
-position = Vector2(1163, -1295)
+position = Vector2(1163, -1322)
 shape = SubResource("RectangleShape2D_tipki")
 
 [node name="CollisionShape2D2" type="CollisionShape2D" parent="Walls2/TopWall"]
@@ -432,7 +432,7 @@ rotation = -0.35953784
 shape = SubResource("RectangleShape2D_muem4")
 
 [node name="CollisionShape2D6" type="CollisionShape2D" parent="Walls2/TopWall"]
-position = Vector2(562.3087, -1171.5852)
+position = Vector2(699.9221, -1213.1333)
 rotation = -0.29321527
 shape = SubResource("RectangleShape2D_dp3eg")
 
@@ -470,7 +470,7 @@ disabled = true
 [node name="MiddleWall" type="StaticBody2D" parent="Walls2"]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Walls2/MiddleWall"]
-position = Vector2(1010.6345, -975.60706)
+position = Vector2(1020.4148, -970.3408)
 rotation = -1.0768682
 shape = SubResource("RectangleShape2D_a8y0u")
 
@@ -479,7 +479,7 @@ position = Vector2(874.25, -1075)
 shape = SubResource("RectangleShape2D_jkv2x")
 
 [node name="CollisionShape2D3" type="CollisionShape2D" parent="Walls2/MiddleWall"]
-position = Vector2(1704, -1284)
+position = Vector2(1700.375, -1284)
 shape = SubResource("RectangleShape2D_jbj1t")
 
 [node name="Walls2" type="Node2D" parent="Walls2"]
