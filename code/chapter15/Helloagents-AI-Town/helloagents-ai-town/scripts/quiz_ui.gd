@@ -30,6 +30,8 @@ var close_button: Button
 var history_button: Button  # 历史查看按钮
 var history_panel: Panel  # 历史查看面板
 
+var api_client: Node = null
+
 func _ready():
 	# 添加到quiz_ui组（必须在最前面，确保其他代码可以找到它）
 	add_to_group("quiz_ui")
@@ -113,6 +115,17 @@ func _ready():
 	else:
 		print("[ERROR] ❌ QuizUI未能添加到quiz_ui组")
 
+	# 连接 APIClient, 用于获取动态题目
+	api_client = get_node_or_null("/root/APIClient")
+	if api_client:
+		if api_client.has_signal("quiz_generated"):
+			api_client.quiz_generated.connect(_on_quiz_generated)
+		if api_client.has_signal("quiz_generation_failed"):
+			api_client.quiz_generation_failed.connect(_on_quiz_generation_failed)
+		print("[INFO] 已连接 APIClient 以获取动态题目")
+	else:
+		print("[WARN] 未找到 APIClient, 将始终使用本地题库")
+
 func start_quiz(quiz_id: String):
 	"""开始答题"""
 	self.quiz_id = quiz_id
@@ -121,15 +134,36 @@ func start_quiz(quiz_id: String):
 	if current_quiz.is_empty():
 		print("[ERROR] 答题不存在: ", quiz_id)
 		return
-	
-	# 随机抽取题目
+
+	# 先尝试动态拉取题目, 若失败则回退到本地题库
 	var total_questions = current_quiz.get("total_questions", 3)
-	current_questions = QuizManager.get_random_questions(quiz_id, total_questions)
+	_request_or_use_fallback_questions(total_questions)
+
+
+func _request_or_use_fallback_questions(total_questions: int) -> void:
+	"""优先请求后端动态题目, 失败时回退本地"""
+	if api_client:
+		var npc_name: String = str(current_quiz.get("npc_name", ""))
+		if npc_name != "":
+			api_client.get_generated_quiz(quiz_id, npc_name, total_questions)
+			# 等待异步回调, 此处先显示加载状态
+			current_questions = []
+			current_question_index = 0
+			correct_count = 0
+			answer_history.clear()
+			_show_loading_state()
+			return
 	
+	# 如果没有 api_client 或 npc_name, 直接使用本地题库
+	_use_fallback_questions(total_questions)
+
+
+func _use_fallback_questions(total_questions: int) -> void:
+	current_questions = QuizManager.get_random_questions(quiz_id, total_questions)
 	if current_questions.is_empty():
 		print("[ERROR] 没有可用题目")
 		return
-	
+
 	current_question_index = 0
 	correct_count = 0
 	answer_history.clear()  # 清空历史记录
@@ -168,6 +202,55 @@ func start_quiz(quiz_id: String):
 	display_question()
 	
 	print("[INFO] 开始答题: ", quiz_id, " 共", current_questions.size(), "题")
+
+
+func _show_loading_state() -> void:
+	"""动态题目加载中的简单提示"""
+	_ensure_node_references()
+	if title_label:
+		title_label.text = current_quiz.get("title", "答题")
+	if question_label:
+		question_label.text = "正在为你准备与 NPC 相关的题目..."
+	if progress_label:
+		progress_label.text = ""
+	if feedback_label:
+		feedback_label.text = ""
+	visible = true
+
+
+func _on_quiz_generated(generated_quiz_id: String, quiz_data: Dictionary) -> void:
+	"""动态题目获取成功"""
+	if generated_quiz_id != "" and generated_quiz_id != quiz_id:
+		return
+	
+	var total_questions = current_quiz.get("total_questions", 3)
+	var questions: Array = quiz_data.get("questions", [])
+	
+	# 将动态题目写入 QuizManager 缓存, 便于重用
+	QuizManager.set_dynamic_questions(quiz_id, questions)
+	
+	if questions.is_empty():
+		print("[WARN] 动态题目为空, 回退到本地题库")
+		_use_fallback_questions(total_questions)
+	else:
+		current_questions = questions
+		current_question_index = 0
+		correct_count = 0
+		answer_history.clear()
+		# 重新进入常规展示流程
+		_ensure_node_references()
+		display_question()
+		visible = true
+		print("[INFO] 使用动态题目开始答题: ", quiz_id, " 共", current_questions.size(), "题")
+
+
+func _on_quiz_generation_failed(failed_quiz_id: String, _error_message: String) -> void:
+	"""动态题目获取失败, 回退到本地题库"""
+	if failed_quiz_id != "" and failed_quiz_id != quiz_id:
+		return
+	var total_questions = current_quiz.get("total_questions", 3)
+	print("[WARN] 动态题目获取失败, 使用本地题库")
+	_use_fallback_questions(total_questions)
 
 func _ensure_node_references():
 	"""确保节点引用已获取"""

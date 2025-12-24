@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://c8y17n1nuiiko"]
 
-[ext_resource type="Script" uid="uid://dvqc04o5nm3yt" path="res://scripts/quiz_ui.gd" id="1_quiz_ui"]
+[ext_resource type="Script" uid="uid://bd66p8v5efisy" path="res://scripts/quiz_ui.gd" id="1_quiz_ui"]
 [ext_resource type="Texture2D" uid="uid://c27wi0uoqq03r" path="res://assets/interiors/答题ui-removebg-preview.png" id="2_4vc25"]
 
 [node name="QuizUI" type="CanvasLayer"]

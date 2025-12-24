@@ -1,17 +1,31 @@
 """赛博小镇 FastAPI 后端主程序"""
 
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+import json
 from contextlib import asynccontextmanager
+
 import uvicorn
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 
 from config import settings
 from models import (
-    ChatRequest, ChatResponse, 
-    NPCStatusResponse, NPCListResponse, NPCInfo
+    ChatRequest,
+    ChatResponse,
+    NPCStatusResponse,
+    NPCListResponse,
+    NPCInfo,
+    GeneratedQuizResponse,
 )
 from agents import get_npc_manager
 from state_manager import get_state_manager
+from quiz_generator import get_quiz_generator
+from logger import (
+    log_quiz_generation_start,
+    log_quiz_generation_success,
+    log_quiz_generation_failure,
+    log_info,
+    log_error,
+)
 
 # 生命周期管理
 @asynccontextmanager
@@ -64,15 +78,18 @@ app.add_middleware(
 # 获取全局实例
 npc_manager = None
 state_manager = None
+quiz_generator = None
 
 def get_managers():
     """获取管理器实例"""
-    global npc_manager, state_manager
+    global npc_manager, state_manager, quiz_generator
     if npc_manager is None:
         npc_manager = get_npc_manager()
     if state_manager is None:
         state_manager = get_state_manager()
-    return npc_manager, state_manager
+    if quiz_generator is None:
+        quiz_generator = get_quiz_generator()
+    return npc_manager, state_manager, quiz_generator
 
 # ==================== API路由 ====================
 
@@ -106,7 +123,7 @@ async def chat_with_npc(request: ChatRequest):
     
     玩家与指定NPC进行实时对话,使用独立的Agent处理
     """
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
     
     # 验证NPC是否存在
     npc_info = npc_mgr.get_npc_info(request.npc_name)
@@ -136,7 +153,7 @@ async def chat_with_npc(request: ChatRequest):
 @app.get("/npcs", response_model=NPCListResponse)
 async def list_npcs():
     """获取所有NPC列表"""
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
     
     npcs_data = npc_mgr.get_all_npcs()
     npcs = [NPCInfo(**npc) for npc in npcs_data]
@@ -152,7 +169,7 @@ async def get_npcs_status():
     
     返回批量生成的NPC对话内容,用于显示NPC的自主行为
     """
-    _, state_mgr = get_managers()
+    _, state_mgr, _ = get_managers()
     
     state = state_mgr.get_current_state()
     
@@ -168,7 +185,7 @@ async def refresh_npcs_status():
     
     立即触发一次批量对话生成
     """
-    _, state_mgr = get_managers()
+    _, state_mgr, _ = get_managers()
     
     await state_mgr.force_update()
     state = state_mgr.get_current_state()
@@ -181,7 +198,7 @@ async def refresh_npcs_status():
 @app.get("/npcs/{npc_name}")
 async def get_npc_info(npc_name: str):
     """获取指定NPC的详细信息"""
-    npc_mgr, state_mgr = get_managers()
+    npc_mgr, state_mgr, _ = get_managers()
 
     npc_info = npc_mgr.get_npc_info(npc_name)
     if not npc_info:
@@ -207,7 +224,7 @@ async def get_npc_memories(npc_name: str, limit: int = 10):
     Returns:
         NPC的记忆列表
     """
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
 
     # 验证NPC是否存在
     npc_info = npc_mgr.get_npc_info(npc_name)
@@ -243,7 +260,7 @@ async def clear_npc_memories(npc_name: str, memory_type: str = None):
     Returns:
         操作结果
     """
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
 
     # 验证NPC是否存在
     npc_info = npc_mgr.get_npc_info(npc_name)
@@ -279,7 +296,7 @@ async def get_npc_affinity(npc_name: str, player_id: str = "player"):
     Returns:
         好感度信息
     """
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
 
     # 验证NPC是否存在
     npc_info = npc_mgr.get_npc_info(npc_name)
@@ -314,7 +331,7 @@ async def get_all_affinities(player_id: str = "player"):
     Returns:
         所有NPC的好感度信息
     """
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
 
     try:
         affinities = npc_mgr.get_all_affinities(player_id)
@@ -330,19 +347,60 @@ async def get_all_affinities(player_id: str = "player"):
             detail=f"获取好感度失败: {str(e)}"
         )
 
+@app.get("/quizzes/generated", response_model=GeneratedQuizResponse)
+async def generate_quiz(
+    npc_name: str,
+    count: int = 3,
+    quiz_id: str | None = None,
+):
+    """根据 NPC 名称与可选 quiz_id 动态生成答题题目
+
+    当前实现使用 QuizGenerator 骨架, 返回结构正确的占位结果。
+    后续任务将补充实际的 LLM 生成与记忆集成逻辑。
+    """
+    # 简单参数校验
+    if count <= 0:
+        raise HTTPException(status_code=400, detail="count 必须大于 0")
+
+    # 验证 NPC 是否存在, 复用现有 npc_manager
+    npc_mgr, _, quiz_gen = get_managers()
+    npc_info = npc_mgr.get_npc_info(npc_name)
+    if not npc_info:
+        raise HTTPException(
+            status_code=404,
+            detail=f"NPC '{npc_name}' 不存在",
+        )
+
+    real_quiz_id = quiz_id or ""
+
+    try:
+        log_quiz_generation_start(real_quiz_id, npc_name)
+        result = quiz_gen.generate_quiz(npc_name=npc_name, count=count, quiz_id=real_quiz_id)
+        log_quiz_generation_success(real_quiz_id, npc_name, len(result.questions))
+        return result
+    except Exception as exc:
+        log_quiz_generation_failure(real_quiz_id, npc_name, "generator_error", exc)
+        # 按规范, 失败时可以返回空 questions, 由前端决定是否回退本地题库
+        return GeneratedQuizResponse(
+            quiz_id=real_quiz_id,
+            npc_name=npc_name,
+            title=f"{npc_name}知识问答（动态生成）",
+            questions=[],
+        )
+
 @app.put("/npcs/{npc_name}/affinity")
 async def set_npc_affinity(npc_name: str, affinity: float, player_id: str = "player"):
     """设置NPC对玩家的好感度 (用于测试)
-
+    
     Args:
         npc_name: NPC名称
         affinity: 好感度值 (0-100)
         player_id: 玩家ID (默认为"player")
-
+    
     Returns:
         操作结果
     """
-    npc_mgr, _ = get_managers()
+    npc_mgr, _, _ = get_managers()
 
     # 验证NPC是否存在
     npc_info = npc_mgr.get_npc_info(npc_name)
@@ -375,6 +433,71 @@ async def set_npc_affinity(npc_name: str, affinity: float, player_id: str = "pla
             status_code=500,
             detail=f"设置好感度失败: {str(e)}"
         )
+
+
+@app.websocket("/ws/dialogues")
+async def dialogues_websocket(websocket: WebSocket):
+    """接收外部应用推送的对话内容，并写入 NPC 的工作记忆"""
+    await websocket.accept()
+    npc_mgr, _, _ = get_managers()
+
+    log_info("🌐 WebSocket 连接已建立: /ws/dialogues")
+
+    try:
+        while True:
+            message_text = await websocket.receive_text()
+            try:
+                data = json.loads(message_text)
+            except json.JSONDecodeError:
+                log_error(f"WS 无效 JSON: {message_text[:100]}...")
+                continue
+
+            npc_name = data.get("npc_name")
+            speaker = data.get("speaker")
+            content = data.get("content")
+            player_id = data.get("player_id", "player")
+            timestamp = data.get("timestamp")
+
+            if not npc_name or not isinstance(npc_name, str):
+                log_error(f"WS 对话注入失败: 缺少有效 npc_name, data={data}")
+                continue
+
+            if speaker not in ("player", "npc"):
+                log_error(f"WS 对话注入失败: 非法 speaker={speaker}, data={data}")
+                continue
+
+            if not content or not isinstance(content, str):
+                log_error(f"WS 对话注入失败: 缺少 content, data={data}")
+                continue
+
+            # 验证 NPC 是否存在
+            npc_info = npc_mgr.get_npc_info(npc_name)
+            if not npc_info:
+                log_error(f"WS 对话注入失败: 未知 NPC '{npc_name}'")
+                continue
+
+            try:
+                npc_mgr.ingest_external_dialogue(
+                    npc_name=npc_name,
+                    speaker=speaker,
+                    content=content,
+                    player_id=player_id,
+                    timestamp=timestamp,
+                )
+            except Exception as exc:
+                log_error(f"WS 对话注入异常: npc={npc_name}, error={exc}")
+                continue
+
+    except WebSocketDisconnect:
+        log_info("🌐 WebSocket 客户端断开连接: /ws/dialogues")
+    except Exception as exc:
+        log_error(f"WS 连接异常中断: {exc}")
+    finally:
+        try:
+            await websocket.close()
+        except RuntimeError:
+            # 已关闭
+            pass
 
 # ==================== 主程序入口 ====================
 

@@ -4,12 +4,16 @@ extends Node
 # 已完成的答题记录
 var completed_quizzes: Dictionary = {}
 
+# 动态题目缓存: quiz_id -> Array[Dictionary]
+var dynamic_questions_cache: Dictionary = {}
+
 # 答题题库
 var quiz_database: Dictionary = {
 	"region1_bridge": {
 		"title": "青年李白知识问答",
+		"npc_name": "青年李白",
 		"target_region": 2,  # 答对后解锁区域2
-		"questions": [
+		"fallback_questions": [
 			{
 				"type": "story",  # 故事题
 				"question": "李白25岁时离开四川，开始了什么？",
@@ -85,7 +89,18 @@ func get_random_questions(quiz_id: String, count: int = 3) -> Array:
 	if quiz.is_empty():
 		return []
 	
-	var all_questions = quiz.get("questions", [])
+	# 若有动态题目缓存, 优先使用
+	if dynamic_questions_cache.has(quiz_id):
+		var dyn = dynamic_questions_cache[quiz_id]
+		if dyn is Array and dyn.size() > 0:
+			return dyn
+	
+	# 否则使用本地兜底题库
+	var all_questions = []
+	if quiz.has("questions"):
+		all_questions = quiz.get("questions", [])
+	else:
+		all_questions = quiz.get("fallback_questions", [])
 	if all_questions.size() <= count:
 		return all_questions
 	
@@ -93,6 +108,14 @@ func get_random_questions(quiz_id: String, count: int = 3) -> Array:
 	var shuffled = all_questions.duplicate()
 	shuffled.shuffle()
 	return shuffled.slice(0, count)
+
+
+func set_dynamic_questions(quiz_id: String, questions: Array) -> void:
+	"""设置某次答题触发的动态题目缓存"""
+	if questions.is_empty():
+		dynamic_questions_cache.erase(quiz_id)
+	else:
+		dynamic_questions_cache[quiz_id] = questions
 
 func save_progress():
 	"""保存进度到本地文件"""
@@ -116,4 +139,3 @@ func load_progress():
 			completed_quizzes = data.get("completed_quizzes", {})
 			print("[INFO] 答题进度已加载: ", completed_quizzes.size(), " 个已完成")
 		file.close()
-

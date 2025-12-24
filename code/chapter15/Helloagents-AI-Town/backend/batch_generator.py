@@ -81,7 +81,9 @@ class NPCBatchGenerator:
             response = self.llm.invoke([
                 {"role": "system", "content": "你是一个游戏NPC对话生成器,擅长创作自然真实的诗人对话,了解李白不同时期的创作风格和人生经历。"},
                 {"role": "user", "content": prompt}
-            ])
+            ],
+            temperature=0.9,        # 温度越高,生成内容越随机,越容易出现意想不到的对话
+            )
 
             # 解析JSON响应
             dialogues = self._parse_response(response)
@@ -125,7 +127,11 @@ class NPCBatchGenerator:
 4. 要自然真实,像真实的诗人李白
 5. 可以体现不同时期的性格特点和情绪
 6. 可以适当引用或模仿李白的诗句风格
-7. **必须严格按照JSON格式返回**
+7. 可以适当引用李白在对应时期的经典故事,吸引玩家继续对话
+8. 在对话中谈及李白在对应时期有交集的其它人物,吸引玩家继续对话
+9. **同一NPC在短时间内的多次发言,内容和表达方式应明显不同,不要重复上一轮的句式或意象**
+10. **主动推动剧情或心境变化,可以提及新的细节、新的感受或新的动作,而不是简单改写上一轮的话**
+11. **必须严格按照JSON格式返回**
 
 【输出格式】(严格遵守)
 {{"老年李白": "...", "青年李白": "...", "中年李白": "..."}}
@@ -174,17 +180,17 @@ class NPCBatchGenerator:
         hour = datetime.now().hour
         
         if 6 <= hour < 9:
-            return "清晨时分,大家陆续到达办公室,准备开始新的一天"
+            return "清晨时分,开始新的一天"
         elif 9 <= hour < 12:
-            return "上午工作时间,大家都在专注工作,办公室氛围专注而忙碌"
+            return "上午"
         elif 12 <= hour < 14:
-            return "午餐时间,大家在休息放松,聊聊天或者看看手机"
+            return "午餐时间"
         elif 14 <= hour < 17:
-            return "下午工作时间,继续推进项目,偶尔需要喝杯咖啡提神"
+            return "下午"
         elif 17 <= hour < 19:
-            return "傍晚时分,准备收尾今天的工作,整理明天的计划"
+            return "傍晚时分"
         else:
-            return "夜晚时分,办公室安静下来,偶尔还有人在加班"
+            return "夜晚时分,各种思念之情涌现"
     
     def _get_preset_dialogues(self) -> Dict[str, str]:
         """获取预设对话(根据时间)"""

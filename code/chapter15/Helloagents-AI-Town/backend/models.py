@@ -67,3 +67,67 @@ class NPCListResponse(BaseModel):
     npcs: List[NPCInfo] = Field(..., description="NPC列表")
     total: int = Field(..., description="NPC总数")
 
+
+class GeneratedQuestion(BaseModel):
+    """动态生成的单道答题题目
+
+    结构需与前端 Godot 现有逻辑及 contracts/quizzes-generated.yaml 中的
+    GeneratedQuestion 模式保持完全一致。
+    """
+
+    type: str = Field(..., description="题目类型标签, 如 story/poem/knowledge")
+    question: str = Field(..., description="题干文本")
+    options: List[str] = Field(..., min_length=2, description="选项列表, 按展示顺序排列")
+    correct: int = Field(..., ge=0, description="正确选项在 options 中的下标(从0开始)")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "type": "story",
+                "question": "李白在青年时期是如何描述自己的远游经历的？",
+                "options": [
+                    "仗剑去国，辞亲远游",
+                    "闭门读书，从不远行",
+                    "久居长安，为官清闲",
+                    "隐居蜀中，不问世事",
+                ],
+                "correct": 0,
+            }
+        }
+
+
+class GeneratedQuizResponse(BaseModel):
+    """动态生成的答题结果
+
+    对应 contracts/quizzes-generated.yaml 中的 GeneratedQuizResponse。
+    """
+
+    quiz_id: str = Field(..., description="触发点 ID, 如 region1_bridge")
+    npc_name: str = Field(..., description="NPC 名称, 如 青年李白")
+    title: str = Field(..., description="答题标题")
+    questions: List[GeneratedQuestion] = Field(
+        default_factory=list, description="题目列表, 可为空(由前端决定是否回退本地题库)"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "quiz_id": "region1_bridge",
+                "npc_name": "青年李白",
+                "title": "青年李白知识问答（动态生成）",
+                "questions": [
+                    {
+                        "type": "story",
+                        "question": "李白在青年时期是如何描述自己的远游经历的？",
+                        "options": [
+                            "仗剑去国，辞亲远游",
+                            "闭门读书，从不远行",
+                            "久居长安，为官清闲",
+                            "隐居蜀中，不问世事",
+                        ],
+                        "correct": 0,
+                    }
+                ],
+            }
+        }
+
