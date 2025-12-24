@@ -58,43 +58,50 @@ func _input(event: InputEvent):
 	if not visible:
 		return
 
-	if event is InputEventKey and event.pressed and not event.echo:
-		# ESC键 - 关闭对话框 
-		if event.keycode == KEY_ESCAPE:
-			hide_dialogue()
-			get_viewport().set_input_as_handled()
-			print("[DEBUG] ESC键关闭对话框")
-			return
-
-		# 回车键 - 发送消息 (仅当输入框有焦点时) 
-		# 注意: LineEdit的text_submitted信号已经处理了回车,这里只是额外保险
-		if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
-			# 如果输入框有焦点,让LineEdit自己处理
-			if player_input.has_focus():
+	if event is InputEventKey and not event.echo:
+		# ⭐ 处理按键按下事件
+		if event.pressed:
+			# ESC键 - 关闭对话框 
+			if event.keycode == KEY_ESCAPE:
+				hide_dialogue()
+				get_viewport().set_input_as_handled()
+				print("[DEBUG] ESC键关闭对话框")
 				return
-			# 否则手动发送
-			send_message()
-			get_viewport().set_input_as_handled()
-			print("[DEBUG] 回车键发送消息")
-			return
 
-		# 屏蔽移动键和交互键,防止触发游戏操作 ⭐ WASD键
-		if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
-			get_viewport().set_input_as_handled()
-			# 只在第一次屏蔽时打印,避免刷屏
-			match event.keycode:
-				KEY_E:
-					print("[DEBUG] 对话框中屏蔽了E键输入")
-				KEY_SPACE:
-					print("[DEBUG] 对话框中屏蔽了空格键输入")
-				KEY_W:
-					print("[DEBUG] 对话框中屏蔽了W键输入")
-				KEY_A:
-					print("[DEBUG] 对话框中屏蔽了A键输入")
-				KEY_S:
-					print("[DEBUG] 对话框中屏蔽了S键输入")
-				KEY_D:
-					print("[DEBUG] 对话框中屏蔽了D键输入")
+			# 回车键 - 发送消息 (仅当输入框有焦点时) 
+			# 注意: LineEdit的text_submitted信号已经处理了回车,这里只是额外保险
+			if event.keycode == KEY_ENTER or event.keycode == KEY_KP_ENTER:
+				# 如果输入框有焦点,让LineEdit自己处理
+				if player_input.has_focus():
+					return
+				# 否则手动发送
+				send_message()
+				get_viewport().set_input_as_handled()
+				print("[DEBUG] 回车键发送消息")
+				return
+
+			# 屏蔽移动键和交互键,防止触发游戏操作 ⭐ WASD键
+			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
+				get_viewport().set_input_as_handled()
+				# 只在第一次屏蔽时打印,避免刷屏
+				match event.keycode:
+					KEY_E:
+						print("[DEBUG] 对话框中屏蔽了E键输入")
+					KEY_SPACE:
+						print("[DEBUG] 对话框中屏蔽了空格键输入")
+					KEY_W:
+						print("[DEBUG] 对话框中屏蔽了W键输入")
+					KEY_A:
+						print("[DEBUG] 对话框中屏蔽了A键输入")
+					KEY_S:
+						print("[DEBUG] 对话框中屏蔽了S键输入")
+					KEY_D:
+						print("[DEBUG] 对话框中屏蔽了D键输入")
+		else:
+			# ⭐ 处理按键释放事件 - 确保WASD键的释放事件也被屏蔽
+			if event.keycode in [KEY_E, KEY_SPACE, KEY_W, KEY_A, KEY_S, KEY_D]:
+				get_viewport().set_input_as_handled()
+				print("[DEBUG] 对话框中屏蔽了按键释放: ", event.keycode)
 
 func start_dialogue(npc_name: String):
 	"""开始与NPC对话"""
@@ -148,6 +155,19 @@ func hide_dialogue():
 	"""隐藏对话框"""
 	visible = false
 
+	# ⭐ 释放输入框焦点，防止残留按键状态
+	if player_input and player_input.has_focus():
+		player_input.release_focus()
+		print("[DEBUG] 已释放输入框焦点")
+
+	# ⭐ 强制释放所有移动相关的输入动作，防止残留按键状态
+	# 这可以确保即使按键状态被保留，也不会影响玩家移动
+	Input.action_release("ui_up")
+	Input.action_release("ui_down")
+	Input.action_release("ui_left")
+	Input.action_release("ui_right")
+	print("[DEBUG] 已强制释放所有移动输入动作")
+
 	# 通知NPC退出交互状态 (恢复移动) 
 	if current_npc_name != "":
 		var npc = get_npc_by_name(current_npc_name)
@@ -166,6 +186,13 @@ func hide_dialogue():
 			player.force_stop()
 		elif "velocity" in player:
 			player.velocity = Vector2.ZERO
+		
+		# ⭐ 延迟一帧再恢复移动，确保输入状态已清除（特别是WASD键）
+		# 这样可以避免外部程序或输入焦点切换导致的残留按键状态
+		await get_tree().process_frame
+		if player and player.has_method("force_stop"):
+			player.force_stop()
+		print("[DEBUG] 对话框已关闭，输入状态已清除")
 
 func _on_send_button_pressed():
 	"""发送按钮点击"""
