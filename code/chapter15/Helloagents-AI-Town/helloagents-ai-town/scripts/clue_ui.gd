@@ -87,10 +87,11 @@ func _setup_ui_style():
 	
 	if title_label:
 		title_label.add_theme_color_override("font_color", Color.WHITE)
-		title_label.add_theme_font_size_override("font_size", 40)
+		title_label.add_theme_font_size_override("font_size", 56)  # 从40增加到56
 	
 	if no_clue_label:
 		no_clue_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+		no_clue_label.add_theme_font_size_override("font_size", 40)  # 增大字体
 
 func _input(event: InputEvent):
 	"""处理输入事件"""
@@ -145,9 +146,96 @@ func update_clue_list():
 	if no_clue_label:
 		no_clue_label.visible = false
 	
-	# 创建线索项
+	# ⭐ 按章节分组线索
+	var clues_by_chapter = {}
 	for clue in collected_clues:
-		_create_clue_item(clue)
+		var chapter = clue.get("chapter", 0)
+		if chapter not in clues_by_chapter:
+			clues_by_chapter[chapter] = []
+		clues_by_chapter[chapter].append(clue)
+	
+	# ⭐ 按章节顺序显示（1, 2, 3）
+	var chapters = clues_by_chapter.keys()
+	chapters.sort()
+	
+	for chapter in chapters:
+		# ⭐ 创建章节标题（带进度）
+		_create_chapter_header(chapter)
+		
+		# 创建该章节的线索项
+		for clue in clues_by_chapter[chapter]:
+			_create_clue_item(clue)
+		
+		# 添加章节分隔
+		_create_chapter_separator()
+
+func _create_chapter_header(chapter: int):
+	"""创建章节标题（带进度）"""
+	var chapter_container = HBoxContainer.new()
+	chapter_container.add_theme_constant_override("separation", 15)
+	
+	# 章节名称
+	var chapter_label = Label.new()
+	var chapter_name = ""
+	match chapter:
+		1:
+			chapter_name = "第一章：青年时期"
+		2:
+			chapter_name = "第二章：长安时期"
+		3:
+			chapter_name = "第三章：晚年时期"
+		_:
+			chapter_name = "第%d章" % chapter
+	
+	chapter_label.text = chapter_name
+	chapter_label.add_theme_color_override("font_color", Color(1.0, 0.8, 0.2, 1.0))  # 金色
+	chapter_label.add_theme_font_size_override("font_size", 44)
+	chapter_label.add_theme_constant_override("outline_size", 4)
+	chapter_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	chapter_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	chapter_container.add_child(chapter_label)
+	
+	# ⭐ 章节线索进度
+	var progress_label = Label.new()
+	if has_node("/root/AchievementManager"):
+		var progress = AchievementManager.get_chapter_clue_progress(chapter)
+		var progress_text = "(%d/%d)" % [progress["collected"], progress["total"]]
+		
+		# 如果已完成，显示成就图标
+		if progress["collected"] >= progress["total"] and progress["total"] > 0:
+			progress_text = "🏆 " + progress_text + " 已完成"
+			progress_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.3, 1.0))  # 金色
+		else:
+			progress_label.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1.0))  # 淡蓝色
+		
+		progress_label.text = progress_text
+		progress_label.add_theme_font_size_override("font_size", 36)
+		progress_label.add_theme_constant_override("outline_size", 3)
+		progress_label.add_theme_color_override("font_outline_color", Color.BLACK)
+		progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		chapter_container.add_child(progress_label)
+	
+	# 添加左边距
+	var outer_container = HBoxContainer.new()
+	outer_container.add_theme_constant_override("separation", 0)
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(20, 0)
+	outer_container.add_child(spacer)
+	outer_container.add_child(chapter_container)
+	outer_container.custom_minimum_size = Vector2(0, 70)  # 增大高度
+	
+	clue_list.add_child(outer_container)
+
+func _create_chapter_separator():
+	"""创建章节分隔线"""
+	var separator = HSeparator.new()
+	separator.custom_minimum_size = Vector2(0, 4)
+	clue_list.add_child(separator)
+	
+	# 添加间距
+	var spacer = Control.new()
+	spacer.custom_minimum_size = Vector2(0, 15)
+	clue_list.add_child(spacer)
 
 func _create_clue_item(clue: Dictionary):
 	"""创建线索项UI"""
@@ -155,16 +243,17 @@ func _create_clue_item(clue: Dictionary):
 	var title = clue.get("title", "未知线索")
 	var category = clue.get("category", "unknown")
 	var icon_path = clue.get("icon", "")
+	var source = clue.get("source", "quest")  # 获取线索来源
 	
-	# 创建线索项容器
+	# ⭐ 创建线索项容器 - 增大尺寸
 	var clue_item = HBoxContainer.new()
-	clue_item.add_theme_constant_override("separation", 15)
-	clue_item.custom_minimum_size = Vector2(0, 70)
+	clue_item.add_theme_constant_override("separation", 20)  # 增大间距
+	clue_item.custom_minimum_size = Vector2(0, 100)  # 从70增加到100
 	
-	# 线索图标（如果有）
+	# ⭐ 线索图标（如果有）- 增大图标尺寸
 	if icon_path != "":
 		var icon_rect = TextureRect.new()
-		icon_rect.custom_minimum_size = Vector2(60, 60)
+		icon_rect.custom_minimum_size = Vector2(90, 90)  # 从60增加到90
 		icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		var icon_texture = load(icon_path)
@@ -174,30 +263,39 @@ func _create_clue_item(clue: Dictionary):
 			# 如果加载失败，使用占位符
 			var placeholder = Label.new()
 			placeholder.text = "🔍"
-			placeholder.add_theme_font_size_override("font_size", 48)
+			placeholder.add_theme_font_size_override("font_size", 72)  # 从48增加到72
 			icon_rect.add_child(placeholder)
 		clue_item.add_child(icon_rect)
 	else:
-		# 没有图标时使用占位符
+		# 没有图标时使用占位符 - 增大尺寸
 		var placeholder = Label.new()
 		placeholder.text = "🔍"
-		placeholder.custom_minimum_size = Vector2(60, 60)
+		placeholder.custom_minimum_size = Vector2(90, 90)  # 从60增加到90
 		placeholder.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		placeholder.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		placeholder.add_theme_font_size_override("font_size", 48)
+		placeholder.add_theme_font_size_override("font_size", 72)  # 从48增加到72
 		clue_item.add_child(placeholder)
 	
-	# 线索标题按钮
+	# ⭐ 内容容器（垂直布局）
+	var content_container = VBoxContainer.new()
+	content_container.add_theme_constant_override("separation", 8)
+	content_container.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	
+	# ⭐ 线索标题按钮 - 增大字体和尺寸
 	var title_button = Button.new()
 	title_button.text = title
-	title_button.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0, 1.0))
-	title_button.add_theme_font_size_override("font_size", 28)
-	title_button.custom_minimum_size = Vector2(300, 60)
+	title_button.add_theme_color_override("font_color", Color(0.9, 0.95, 1.0, 1.0))
+	title_button.add_theme_font_size_override("font_size", 36)  # 从28增加到36
+	title_button.custom_minimum_size = Vector2(400, 50)  # 增大尺寸
 	title_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_button.pressed.connect(func(): show_clue_detail(clue_id))
-	clue_item.add_child(title_button)
+	content_container.add_child(title_button)
 	
-	# 线索分类标签
+	# ⭐ 线索信息行（分类和来源）
+	var info_container = HBoxContainer.new()
+	info_container.add_theme_constant_override("separation", 15)
+	
+	# 线索分类标签 - 增大字体
 	var category_label = Label.new()
 	var category_text = ""
 	match category:
@@ -214,8 +312,28 @@ func _create_clue_item(clue: Dictionary):
 	
 	category_label.text = category_text
 	category_label.add_theme_color_override("font_color", Color(0.6, 0.8, 1.0, 1.0))
-	category_label.add_theme_font_size_override("font_size", 22)
-	clue_item.add_child(category_label)
+	category_label.add_theme_font_size_override("font_size", 28)  # 从22增加到28
+	info_container.add_child(category_label)
+	
+	# ⭐ 线索来源标签
+	var source_label = Label.new()
+	var source_text = ""
+	match source:
+		"quest":
+			source_text = "任务获得"
+		"scene":
+			source_text = "场景收集"
+		_:
+			source_text = ""
+	
+	if source_text != "":
+		source_label.text = "• " + source_text
+		source_label.add_theme_color_override("font_color", Color(0.8, 0.6, 1.0, 1.0))  # 紫色
+		source_label.add_theme_font_size_override("font_size", 24)
+		info_container.add_child(source_label)
+	
+	content_container.add_child(info_container)
+	clue_item.add_child(content_container)
 	
 	# 添加到列表
 	clue_list.add_child(clue_item)
@@ -251,10 +369,28 @@ func show_clue_detail(clue_id: String):
 	if clue_detail_desc:
 		var desc = clue.get("description", "")
 		var chapter = clue.get("chapter", 0)
+		var source = clue.get("source", "quest")
+		var source_text = ""
+		match source:
+			"quest":
+				source_text = "任务获得"
+			"scene":
+				source_text = "场景收集"
+		
 		if chapter > 0:
-			desc = "第%d章\n\n" % chapter + desc
+			var chapter_name = ""
+			match chapter:
+				1:
+					chapter_name = "第一章：青年时期"
+				2:
+					chapter_name = "第二章：长安时期"
+				3:
+					chapter_name = "第三章：晚年时期"
+				_:
+					chapter_name = "第%d章" % chapter
+			desc = "%s\n来源：%s\n\n%s" % [chapter_name, source_text, desc]
 		clue_detail_desc.text = desc
-		clue_detail_desc.add_theme_font_size_override("font_size", 24)
+		clue_detail_desc.add_theme_font_size_override("font_size", 32)  # 从24增加到32
 		clue_detail_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func hide_clue_detail():

@@ -6,7 +6,7 @@ signal reward_finished
 @onready var control: Control = $Control
 @onready var panel: Panel = $Control/Panel
 @onready var icon_label: Label = $Control/Panel/VBoxContainer/IconLabel
-@onready var text_label: Label = $Control/Panel/VBoxContainer/TextLabel
+@onready var text_label: RichTextLabel = $Control/Panel/VBoxContainer/TextLabel
 
 var current_tween: Tween = null
 var is_playing: bool = false  # ⭐ 标志：是否正在播放动画
@@ -72,7 +72,8 @@ func show_keyword_reward(keyword, chapter: int):
 	
 	# 设置图标和文本
 	icon_label.text = "✓"
-	text_label.text = "收集到关键词：\n%s" % display_keyword
+	var text_color_hex = text_label.get_theme_color("default_color").to_html()
+	text_label.text = "[center]收集到关键词：\n[color=%s]%s[/color][/center]" % [text_color_hex, display_keyword]
 	print("[DEBUG] 最终显示的关键词: ", display_keyword)
 	
 	# 显示并播放动画（等待动画完成）
@@ -101,10 +102,64 @@ func show_quiz_reward(correct_count: int, chapter: int):
 	
 	# 设置图标和文本（根据答对题目数量显示）
 	icon_label.text = "⭐"
+	var text_color_hex = text_label.get_theme_color("default_color").to_html()
 	if correct_count == 1:
-		text_label.text = "答对 1 题！"
+		text_label.text = "[center][color=%s]答对 1 题！[/color][/center]" % text_color_hex
 	else:
-		text_label.text = "答对 %d 题！" % correct_count
+		text_label.text = "[center][color=%s]答对 %d 题！[/color][/center]" % [text_color_hex, correct_count]
+	
+	# 显示并播放动画
+	_play_reward_animation()
+
+func show_clue_reward(clue_title: String, chapter: int):
+	"""显示线索收集奖励
+	Args:
+		clue_title: 收集到的线索标题
+		chapter: 当前章节（1, 2, 3）
+	"""
+	_setup_ui_style(chapter)
+	
+	# 设置图标和文本
+	icon_label.text = "🔍"  # 使用放大镜图标表示线索
+	var text_color_hex = text_label.get_theme_color("default_color").to_html()
+	text_label.text = "[center]收集到线索：\n[color=%s]%s[/color][/center]" % [text_color_hex, clue_title]
+	
+	# 显示并播放动画
+	_play_reward_animation()
+
+func show_achievement_reward(achievement_title: String, chapter: int, trophy_name: String = ""):
+	"""显示成就奖励
+	Args:
+		achievement_title: 成就标题
+		chapter: 当前章节（1, 2, 3）
+		trophy_name: 奖杯名称（用于提示）
+	"""
+	_setup_ui_style(chapter)
+	
+	# ⭐ 根据章节使用不同的奖杯图标
+	var trophy_icon = ""
+	match chapter:
+		1:
+			trophy_icon = "🌿"  # 青年时期 - 嫩芽/绿叶
+		2:
+			trophy_icon = "⭐"  # 长安时期 - 星星
+		3:
+			trophy_icon = "🌙"  # 晚年时期 - 月亮
+		_:
+			trophy_icon = "🏆"  # 默认奖杯
+	
+	icon_label.text = trophy_icon
+	
+	# ⭐ 添加背包提示（使用BBCode让背包提示文字更小）
+	var text_color_hex = text_label.get_theme_color("default_color").to_html()
+	var display_text = "[center]获得成就：\n%s" % achievement_title
+	if trophy_name != "":
+		display_text += "\n[font_size=60][color=%s]🎒 已将 %s 放入背包[/color][/font_size][/center]" % [text_color_hex, trophy_name]
+	else:
+		display_text += "\n[font_size=60][color=%s]🎒 已将奖杯放入背包[/color][/font_size][/center]" % text_color_hex
+	
+	# 使用BBCode格式
+	text_label.text = display_text
 	
 	# 显示并播放动画（等待动画完成）
 	await _play_reward_animation()
@@ -179,21 +234,23 @@ func _setup_ui_style(chapter: int):
 	
 	# 设置文本样式（大号字体）
 	if text_label:
-		text_label.add_theme_font_size_override("font_size", 90)  # 大号字体（从72增大到90）
+		text_label.add_theme_font_size_override("normal_font_size", 90)  # 大号字体（从72增大到90）
 		text_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		text_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		text_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		text_label.fit_content = true
 		
-		# 根据章节设置文本颜色
+		# 根据章节设置文本颜色（RichTextLabel使用BBCode设置颜色）
+		var text_color = Color(1.0, 1.0, 1.0, 1.0)
 		match chapter:
 			1:  # 绿色
-				text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))  # 白色文字
+				text_color = Color(1.0, 1.0, 1.0, 1.0)  # 白色文字
 			2:  # 金色
-				text_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.8, 1.0))  # 浅金色文字
+				text_color = Color(1.0, 0.95, 0.8, 1.0)  # 浅金色文字
 			3:  # 棕色
-				text_label.add_theme_color_override("font_color", Color(0.95, 0.9, 0.85, 1.0))  # 浅棕色文字
-			_:
-				text_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+				text_color = Color(0.95, 0.9, 0.85, 1.0)  # 浅棕色文字
+		
+		# 设置默认文本颜色
+		text_label.add_theme_color_override("default_color", text_color)
 
 func _play_reward_animation():
 	"""播放奖励动画"""

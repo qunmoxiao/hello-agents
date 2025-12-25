@@ -1,4 +1,4 @@
-[gd_scene load_steps=82 format=3 uid="uid://vd6f817st20r"]
+[gd_scene load_steps=83 format=3 uid="uid://vd6f817st20r"]
 
 [ext_resource type="Script" uid="uid://dyfhfmncwhby0" path="res://scripts/main.gd" id="1_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://dvs41irukbpji" path="res://assets/interiors/背景1.png" id="2_muem4"]
@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" path="res://scenes/quiz_trigger.tscn" id="18_dp3eg"]
 [ext_resource type="PackedScene" path="res://scenes/scene_guide_ui.tscn" id="19_scene_guide"]
 [ext_resource type="PackedScene" path="res://scenes/controls_hint_ui.tscn" id="20_controls_hint"]
+[ext_resource type="PackedScene" path="res://scenes/clue_trigger.tscn" id="20_gqmmt"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yq6so"]
 atlas = ExtResource("12_muem4")
@@ -191,7 +192,7 @@ region = Rect2(448, 0, 112, 195)
 atlas = ExtResource("16_0ld40")
 region = Rect2(560, 0, 112, 195)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_0ld40"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_yc10j"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -389,7 +390,7 @@ z_index = 1
 position = Vector2(3241, 1027)
 npc_name = "中年李白"
 npc_title = ""
-sprite_frames = SubResource("SpriteFrames_0ld40")
+sprite_frames = SubResource("SpriteFrames_yc10j")
 wander_enabled = false
 wander_range = 5.0
 
@@ -593,7 +594,7 @@ position = Vector2(4257, -879)
 shape = SubResource("RectangleShape2D_kmb1v")
 
 [node name="QuizTrigger" parent="." instance=ExtResource("18_dp3eg")]
-position = Vector2(1869, 1614)
+position = Vector2(2394, 1397)
 scale = Vector2(0.5, 0.5)
 hint_text = "按E键开始答题（第一章）"
 
@@ -610,3 +611,48 @@ scale = Vector2(0.5, 0.5)
 quiz_id = "region3_dock"
 target_region = 0
 hint_text = "按E键开始答题（第三章）"
+
+[node name="ClueTrigger" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(2013, 1745)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_101"
+
+[node name="ClueTrigger2" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(2238, 1624)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_102"
+
+[node name="ClueTrigger3" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(2404, 1558)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_103"
+
+[node name="ClueTrigger4" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(4184, 1047)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_201"
+
+[node name="ClueTrigger5" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(4442, 1050)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_202"
+
+[node name="ClueTrigger6" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(4667, 1050)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_203"
+
+[node name="ClueTrigger7" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(5617, 844)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_301"
+
+[node name="ClueTrigger8" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(5875, 847)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_302"
+
+[node name="ClueTrigger9" parent="." instance=ExtResource("20_gqmmt")]
+position = Vector2(6100, 847)
+scale = Vector2(0.5, 0.5)
+clue_id = "clue_303"

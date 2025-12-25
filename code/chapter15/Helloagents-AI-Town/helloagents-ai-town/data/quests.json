@@ -81,7 +81,7 @@
       "required_count": 2
     },
     "reward": {
-      "clue": "clue_004",
+      "clue": "clue_003",
       "exp": 100
     },
     "hint": "与中年李白对话，询问他在长安的经历"
@@ -108,14 +108,14 @@
     },
     "reward": {
       "unlock_region": 3,
-      "clue": "clue_005",
+      "clue": "clue_004",
       "exp": 200
     },
     "hint": "前往宫门前答题，了解李白在长安的经历"
   },
   
-  "quest_007": {
-    "quest_id": "quest_007",
+  "quest_005": {
+    "quest_id": "quest_005",
     "type": "dialogue",
     "title": "流放夜郎",
     "description": "与老年李白对话，了解他的流放经历",
@@ -140,19 +140,19 @@
       "required_count": 2
     },
     "reward": {
-      "clue": "clue_007",
+      "clue": "clue_005",
       "exp": 100
     },
     "hint": "与老年李白对话，询问他的流放经历"
   },
-  "quest_008": {
-    "quest_id": "quest_008",
+  "quest_006": {
+    "quest_id": "quest_006",
     "type": "quiz",
     "title": "最终答题",
     "description": "在码头上答题，完成最终考验，了解李白晚年的经历和代表作品",
     "chapter": 3,
     "is_main": true,
-    "required_quests": ["quest_007"],
+    "required_quests": ["quest_005"],
     "quiz_id": "region3_dock",
     "required_correct": 2,
     "total_questions": 3,
@@ -166,7 +166,7 @@
       "required_correct": 2
     },
     "reward": {
-      "clue": "clue_008",
+      "clue": "clue_006",
       "exp": 200
     },
     "hint": "前往码头上答题，了解李白晚年的经历"
@@ -178,8 +178,12 @@
     "description": "根据收集的所有线索，回答\"李白一生的转折点是什么？\"",
     "chapter": 3,
     "is_main": true,
-    "required_quests": ["quest_008"],
-    "required_clues": ["clue_001", "clue_002", "clue_004", "clue_005", "clue_007", "clue_008"],
+    "required_quests": ["quest_006"],
+    "required_clues": [
+      "clue_001", "clue_002", "clue_101", "clue_102", "clue_103",
+      "clue_003", "clue_004", "clue_201", "clue_202", "clue_203",
+      "clue_005", "clue_006", "clue_301", "clue_302", "clue_303"
+    ],
     "question": "李白一生的转折点是什么？",
     "options": [
       "离开蜀中",
@@ -194,37 +198,13 @@
     },
     "completion": {
       "type": "reasoning",
-      "required_clues_count": 6
+      "required_clues_count": 15
     },
     "reward": {
       "ending": "ending_001",
       "exp": 500
     },
-    "hint": "收集所有线索后，根据线索推理李白一生的转折点"
-  },
-  "quest_010": {
-    "quest_id": "quest_010",
-    "type": "collection",
-    "title": "收集晚年诗词",
-    "description": "收集5首李白晚年创作的诗词",
-    "chapter": 3,
-    "is_main": false,
-    "required_quests": ["quest_007"],
-    "items": ["poem_009", "poem_010", "poem_011", "poem_012", "poem_013"],
-    "required_count": 5,
-    "trigger": {
-      "type": "collection",
-      "auto_start": false
-    },
-    "completion": {
-      "type": "item_collection",
-      "required_count": 5
-    },
-    "reward": {
-      "clue": "clue_009",
-      "exp": 300
-    },
-    "hint": "在老年时期区域寻找李白的晚年诗词"
+    "hint": "收集所有15个线索后（6个任务线索+9个场景线索），根据线索推理李白一生的转折点"
   }
 }
 

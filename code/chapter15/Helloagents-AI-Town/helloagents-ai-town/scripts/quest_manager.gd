@@ -300,13 +300,27 @@ func complete_quest(quest_id: String):
 				quest_data["progress"] = required_count
 				quest_progress_updated.emit(quest_id, required_count, required_count)
 	
+	# ⭐ 先标记任务完成，这样线索的解锁条件检查才能通过
+	completed_quests[quest_id] = quest_data
+	active_quests.erase(quest_id)
+	
 	# 发放奖励
 	var reward = quest.get("reward", {})
 	
 	# 发放线索
 	if reward.has("clue"):
 		if has_node("/root/ClueManager"):
-			ClueManager.collect_clue(reward["clue"])
+			# ⭐ 任务奖励发放时跳过解锁条件检查（因为任务已经完成）
+			var collected = ClueManager.collect_clue(reward["clue"], true)
+			if collected:
+				print("[INFO] ✅ 任务奖励：已发放线索 ", reward["clue"])
+				# ⭐ 显示线索收集奖励特效
+				if has_node("/root/RewardEffectManager"):
+					var clue_info = ClueManager.get_clue_info(reward["clue"])
+					if clue_info.has("title"):
+						RewardEffectManager.show_clue_reward(clue_info["title"])
+			else:
+				print("[WARN] ⚠️ 线索收集失败: ", reward["clue"])
 		else:
 			print("[WARN] ClueManager未找到，无法发放线索奖励")
 	
@@ -324,10 +338,6 @@ func complete_quest(quest_id: String):
 			print("[WARN] ItemCollection未找到，无法发放物品奖励")
 	
 	# ⭐ 注意：区域解锁延迟到场景所有任务完成后
-	
-	# 完成任务
-	completed_quests[quest_id] = quest_data
-	active_quests.erase(quest_id)
 	
 	quest_completed.emit(quest_id)
 	print("[INFO] 任务完成: ", quest["title"])

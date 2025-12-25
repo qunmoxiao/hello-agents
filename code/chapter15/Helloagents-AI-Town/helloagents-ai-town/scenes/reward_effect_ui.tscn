@@ -39,10 +39,10 @@ text = "✓"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TextLabel" type="Label" parent="Control/Panel/VBoxContainer"]
+[node name="TextLabel" type="RichTextLabel" parent="Control/Panel/VBoxContainer"]
 layout_mode = 2
+bbcode_enabled = true
 text = "收集到关键词：xxx"
 horizontal_alignment = 1
-vertical_alignment = 1
 autowrap_mode = 3
 

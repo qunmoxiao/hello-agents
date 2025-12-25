@@ -1,27 +1,162 @@
 {
   "clue_001": {
-    "clue_id": "clue_001",
-    "title": "李白25岁离开蜀中",
-    "description": "李白在25岁时离开蜀中，开始了他的游历生涯",
-    "chapter": 1,
-    "category": "event",
-    "related_quests": ["quest_001"],
-    "related_clues": ["clue_002"],
-    "icon": "res://assets/icons/clue_001.png",
-    "unlock_condition": {
-      "type": "quest_completion",
-      "quest_id": "quest_001"
-    }
+	"clue_id": "clue_001",
+	"title": "李白25岁离开蜀中",
+	"description": "李白在25岁时离开蜀中，开始了他的游历生涯。这是他人生的重要转折点，标志着他从蜀中走向更广阔的天地。",
+	"chapter": 1,
+	"category": "event",
+	"source": "quest",
+	"related_quests": ["quest_001"],
+	"related_clues": ["clue_002", "clue_101"],
+	"icon": "",
+	"unlock_condition": {
+	  "type": "quest_completion",
+	  "quest_id": "quest_001"
+	}
   },
   "clue_002": {
-    "clue_id": "clue_002",
-    "title": "李白在长安的辉煌",
-    "description": "李白在长安时期创作了大量优秀作品",
-    "chapter": 1,
-    "category": "event",
-    "related_quests": ["quest_002"],
-    "related_clues": ["clue_001"],
-    "icon": "res://assets/icons/clue_002.png"
+	"clue_id": "clue_002",
+	"title": "桥上答题的收获",
+	"description": "通过桥上答题，了解了李白青年时期的文学造诣和知识储备。这些知识为他后来的创作奠定了坚实的基础。",
+	"chapter": 1,
+	"category": "event",
+	"source": "quest",
+	"related_quests": ["quest_002"],
+	"related_clues": ["clue_001", "clue_102"],
+	"icon": ""
+  },
+  "clue_101": {
+	"clue_id": "clue_101",
+	"title": "蜀中的山水风光",
+	"description": "蜀中的壮丽山水激发了李白的创作灵感。这里的自然美景成为他后来诗歌创作的重要素材。",
+	"chapter": 1,
+	"category": "location",
+	"source": "scene",
+	"related_clues": ["clue_001", "clue_102"],
+	"icon": ""
+  },
+  "clue_102": {
+	"clue_id": "clue_102",
+	"title": "初出茅庐的志向",
+	"description": "李白年轻时就有远大的理想和抱负。他渴望建功立业，实现自己的人生价值。",
+	"chapter": 1,
+	"category": "person",
+	"source": "scene",
+	"related_clues": ["clue_002", "clue_103"],
+	"icon": ""
+  },
+  "clue_103": {
+	"clue_id": "clue_103",
+	"title": "游历的起点",
+	"description": "离开蜀中是李白人生的重要起点。从这一刻起，他开始了长达一生的游历生涯。",
+	"chapter": 1,
+	"category": "event",
+	"source": "scene",
+	"related_clues": ["clue_101", "clue_102"],
+	"icon": ""
+  },
+  "clue_003": {
+	"clue_id": "clue_003",
+	"title": "李白在长安的生活",
+	"description": "李白在长安时期，曾在翰林院任职，与权贵交往，创作了大量优秀作品。这是他人生中的辉煌时期。",
+	"chapter": 2,
+	"category": "event",
+	"source": "quest",
+	"related_quests": ["quest_003"],
+	"related_clues": ["clue_004", "clue_201"],
+	"icon": ""
+  },
+  "clue_004": {
+	"clue_id": "clue_004",
+	"title": "宫门前的考验",
+	"description": "在宫门前答题，了解了李白在长安的创作和与权贵的关系。这些经历影响了他后来的创作风格。",
+	"chapter": 2,
+	"category": "event",
+	"source": "quest",
+	"related_quests": ["quest_004"],
+	"related_clues": ["clue_003", "clue_202"],
+	"icon": ""
+  },
+  "clue_201": {
+	"clue_id": "clue_201",
+	"title": "长安的繁华",
+	"description": "长安的繁华景象给李白留下了深刻印象。这座都城的一切都让他感到新奇和兴奋。",
+	"chapter": 2,
+	"category": "location",
+	"source": "scene",
+	"related_clues": ["clue_003", "clue_202"],
+	"icon": ""
+  },
+  "clue_202": {
+	"clue_id": "clue_202",
+	"title": "与权贵的交往",
+	"description": "李白在长安时期与权贵交往，但也因此受到排挤。他的性格不适合官场的尔虞我诈。",
+	"chapter": 2,
+	"category": "event",
+	"source": "scene",
+	"related_clues": ["clue_004", "clue_203"],
+	"icon": ""
+  },
+  "clue_203": {
+	"clue_id": "clue_203",
+	"title": "离开长安的原因",
+	"description": "李白因性格不合而离开长安，这是他人生的重要转折。这次离开标志着他仕途的结束。",
+	"chapter": 2,
+	"category": "event",
+	"source": "scene",
+	"related_clues": ["clue_201", "clue_202"],
+	"icon": ""
+  },
+  "clue_005": {
+	"clue_id": "clue_005",
+	"title": "流放夜郎的经历",
+	"description": "李白因参与永王李璘的叛乱而被流放夜郎，这是他人生中的重大挫折。这次经历让他对人生有了更深刻的思考。",
+	"chapter": 3,
+	"category": "event",
+	"source": "quest",
+	"related_quests": ["quest_005"],
+	"related_clues": ["clue_006", "clue_301"],
+	"icon": ""
+  },
+  "clue_006": {
+	"clue_id": "clue_006",
+	"title": "最终考验的收获",
+	"description": "通过最终答题，了解了李白晚年的经历和代表作品。这些作品反映了他晚年的心境和思想。",
+	"chapter": 3,
+	"category": "event",
+	"source": "quest",
+	"related_quests": ["quest_006"],
+	"related_clues": ["clue_005", "clue_302"],
+	"icon": ""
+  },
+  "clue_301": {
+	"clue_id": "clue_301",
+	"title": "流放路上的见闻",
+	"description": "流放路上的见闻让李白对人生有了更深刻的思考。他看到了社会的另一面，也看到了自己的渺小。",
+	"chapter": 3,
+	"category": "event",
+	"source": "scene",
+	"related_clues": ["clue_005", "clue_302"],
+	"icon": ""
+  },
+  "clue_302": {
+	"clue_id": "clue_302",
+	"title": "遇赦后的心境",
+	"description": "遇赦后李白的心境发生了很大变化。他不再执着于仕途，而是更加专注于诗歌创作。",
+	"chapter": 3,
+	"category": "person",
+	"source": "scene",
+	"related_clues": ["clue_006", "clue_303"],
+	"icon": ""
+  },
+  "clue_303": {
+	"clue_id": "clue_303",
+	"title": "晚年的创作",
+	"description": "李白晚年创作了大量优秀作品，反映了他对人生的感悟。这些作品成为他留给后世的宝贵财富。",
+	"chapter": 3,
+	"category": "item",
+	"source": "scene",
+	"related_clues": ["clue_301", "clue_302"],
+	"icon": ""
   }
 }
-
