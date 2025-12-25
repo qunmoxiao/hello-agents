@@ -5,6 +5,11 @@ extends Node
 var reward_queue: Array[Dictionary] = []
 var is_showing_reward: bool = false
 
+# ⭐ 公开队列和状态，供其他系统检查
+func get_reward_queue() -> Array:
+	"""获取奖励队列（只读）"""
+	return reward_queue.duplicate()
+
 # 奖励效果UI场景路径
 const REWARD_UI_SCENE = preload("res://scenes/reward_effect_ui.tscn")
 
@@ -33,6 +38,32 @@ func show_quiz_reward(correct_count: int):
 	var reward_data = {
 		"type": "quiz",
 		"correct_count": correct_count
+	}
+	_add_to_queue(reward_data)
+
+func show_clue_reward(clue_title: String):
+	"""显示线索收集奖励
+	Args:
+		clue_title: 收集到的线索标题
+	"""
+	var reward_data = {
+		"type": "clue",
+		"clue_title": clue_title
+	}
+	_add_to_queue(reward_data)
+
+func show_achievement_reward(achievement_title: String, chapter: int, trophy_name: String = ""):
+	"""显示成就奖励
+	Args:
+		achievement_title: 成就标题
+		chapter: 章节号
+		trophy_name: 奖杯名称（用于提示）
+	"""
+	var reward_data = {
+		"type": "achievement",
+		"achievement_title": achievement_title,
+		"chapter": chapter,
+		"trophy_name": trophy_name
 	}
 	_add_to_queue(reward_data)
 
@@ -66,6 +97,14 @@ func _show_reward(reward_data: Dictionary):
 	elif reward_data["type"] == "quiz":
 		var correct_count = reward_data.get("correct_count", 1)
 		reward_ui_instance.show_quiz_reward(correct_count, current_chapter)
+	elif reward_data["type"] == "clue":
+		var clue_title = reward_data.get("clue_title", "")
+		reward_ui_instance.show_clue_reward(clue_title, current_chapter)
+	elif reward_data["type"] == "achievement":
+		var achievement_title = reward_data.get("achievement_title", "")
+		var chapter = reward_data.get("chapter", current_chapter)
+		var trophy_name = reward_data.get("trophy_name", "")
+		reward_ui_instance.show_achievement_reward(achievement_title, chapter, trophy_name)
 	
 	# 等待奖励动画完成
 	await reward_ui_instance.reward_finished

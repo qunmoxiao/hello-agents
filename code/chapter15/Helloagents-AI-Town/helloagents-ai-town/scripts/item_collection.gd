@@ -17,18 +17,36 @@ func _ready():
 
 func load_item_database():
 	"""加载物品数据库"""
+	print("[DEBUG] 📂 开始加载物品数据库...")
 	var file = FileAccess.open("res://data/items.json", FileAccess.READ)
 	if file:
 		var json = JSON.new()
-		var parse_result = json.parse(file.get_as_text())
+		var file_content = file.get_as_text()
+		var parse_result = json.parse(file_content)
 		if parse_result == OK:
 			item_database = json.data
-			print("[INFO] 物品数据库已加载: ", item_database.size(), " 个物品")
+			print("[INFO] ✅ 物品数据库已加载: ", item_database.size(), " 个物品")
+			# 输出所有物品ID用于调试
+			print("[DEBUG] 物品ID列表: ", item_database.keys())
+			# 特别检查奖杯物品
+			if "trophy_chapter1" in item_database:
+				print("[DEBUG] ✅ trophy_chapter1 存在于数据库中")
+			else:
+				print("[ERROR] ❌ trophy_chapter1 不在数据库中")
+			if "trophy_chapter2" in item_database:
+				print("[DEBUG] ✅ trophy_chapter2 存在于数据库中")
+			else:
+				print("[ERROR] ❌ trophy_chapter2 不在数据库中")
+			if "trophy_chapter3" in item_database:
+				print("[DEBUG] ✅ trophy_chapter3 存在于数据库中")
+			else:
+				print("[ERROR] ❌ trophy_chapter3 不在数据库中")
 		else:
-			print("[ERROR] 物品数据库JSON解析失败")
+			print("[ERROR] ❌ 物品数据库JSON解析失败，错误代码: ", parse_result)
+			print("[DEBUG] JSON内容前100字符: ", file_content.substr(0, 100))
 		file.close()
 	else:
-		print("[WARN] 物品数据库文件不存在，将使用空数据库")
+		print("[ERROR] ❌ 物品数据库文件不存在: res://data/items.json")
 
 func collect_item(item_id: String, count: int = 1) -> bool:
 	"""收集物品
@@ -40,15 +58,21 @@ func collect_item(item_id: String, count: int = 1) -> bool:
 	Returns:
 		bool: 是否成功收集
 	"""
+	print("[DEBUG] 📦 尝试收集物品: ", item_id, " 数量: ", count)
+	print("[DEBUG] 物品数据库大小: ", item_database.size())
+	print("[DEBUG] 当前已收集物品: ", collected_items.keys())
+	
 	if item_id not in item_database:
-		print("[ERROR] 物品不存在: ", item_id)
+		print("[ERROR] ❌ 物品不存在于数据库中: ", item_id)
+		print("[DEBUG] 数据库中的物品ID列表: ", item_database.keys())
 		return false
 	
 	var item = item_database[item_id]
+	print("[DEBUG] 找到物品: ", item.get("name", "未知"))
 	
 	# 检查是否可收集
 	if not item.get("collectible", true):
-		print("[WARN] 物品不可收集: ", item_id)
+		print("[WARN] ⚠️ 物品不可收集: ", item_id)
 		return false
 	
 	# 检查是否可堆叠
@@ -56,18 +80,24 @@ func collect_item(item_id: String, count: int = 1) -> bool:
 	if stackable:
 		if item_id in collected_items:
 			collected_items[item_id] += count
+			print("[DEBUG] 堆叠物品，数量更新为: ", collected_items[item_id])
 		else:
 			collected_items[item_id] = count
+			print("[DEBUG] 新收集堆叠物品，数量: ", count)
 	else:
 		# 不可堆叠物品，只能有一个
 		if item_id in collected_items:
-			print("[WARN] 物品已收集且不可堆叠: ", item_id)
+			print("[WARN] ⚠️ 物品已收集且不可堆叠: ", item_id)
 			return false
 		collected_items[item_id] = 1
+		print("[DEBUG] 收集不可堆叠物品")
 	
+	print("[DEBUG] 发送 item_collected 信号: ", item_id, " x", count)
 	item_collected.emit(item_id, count)
 	
-	print("[INFO] 收集到物品: ", item["name"], " x", count)
+	print("[INFO] ✅ 收集到物品: ", item["name"], " x", count)
+	print("[DEBUG] 当前背包物品: ", collected_items.keys())
+	
 	save_progress()
 	
 	# 检查收集任务进度

@@ -102,7 +102,7 @@ func _is_other_ui_open() -> bool:
 	# 检查对话UI是否打开
 	var dialogue_ui = get_tree().get_first_node_in_group("dialogue_system")
 	if dialogue_ui and dialogue_ui.visible:
-		print("[DEBUG] 对话UI打开，不处理Esc键")
+		#print("[DEBUG] 对话UI打开，不处理Esc键")
 		return true
 	
 	# 注意：任务UI是常驻UI，不需要检查
@@ -112,7 +112,7 @@ func _is_other_ui_open() -> bool:
 	if not inventory_ui:
 		inventory_ui = get_tree().get_first_node_in_group("inventory_ui")
 	if inventory_ui and inventory_ui.visible:
-		print("[DEBUG] 背包UI打开，不处理Esc键")
+		#print("[DEBUG] 背包UI打开，不处理Esc键")
 		return true
 	
 	# 检查线索UI是否打开
@@ -120,19 +120,19 @@ func _is_other_ui_open() -> bool:
 	if not clue_ui:
 		clue_ui = get_tree().get_first_node_in_group("clue_ui")
 	if clue_ui and clue_ui.visible:
-		print("[DEBUG] 线索UI打开，不处理Esc键")
+		#print("[DEBUG] 线索UI打开，不处理Esc键")
 		return true
 	
 	# 检查场景指南UI是否打开
 	var scene_guide_ui = get_tree().get_first_node_in_group("scene_guide_ui")
 	if scene_guide_ui and scene_guide_ui.visible:
-		print("[DEBUG] 场景指南UI打开，不处理Esc键")
+		#print("[DEBUG] 场景指南UI打开，不处理Esc键")
 		return true
 	
 	# 检查答题UI是否打开
 	var quiz_ui = get_tree().get_first_node_in_group("quiz_ui")
 	if quiz_ui and quiz_ui.visible:
-		print("[DEBUG] 答题UI打开，不处理Esc键")
+		#print("[DEBUG] 答题UI打开，不处理Esc键")
 		return true
 	
 	return false

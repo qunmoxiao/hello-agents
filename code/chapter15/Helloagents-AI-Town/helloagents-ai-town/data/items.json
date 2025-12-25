@@ -1,0 +1,179 @@
+{
+  "poem_001": {
+    "item_id": "poem_001",
+    "name": "《静夜思》",
+    "description": "床前明月光，疑是地上霜。举头望明月，低头思故乡。",
+    "type": "poem",
+    "rarity": "common",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "床前明月光，疑是地上霜。\n举头望明月，低头思故乡。\n\n这是李白最著名的思乡诗之一，写于他离开家乡后。"
+  },
+  "poem_002": {
+    "item_id": "poem_002",
+    "name": "《将进酒》",
+    "description": "君不见，黄河之水天上来，奔流到海不复回。",
+    "type": "poem",
+    "rarity": "rare",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "君不见，黄河之水天上来，奔流到海不复回。\n君不见，高堂明镜悲白发，朝如青丝暮成雪。\n人生得意须尽欢，莫使金樽空对月。\n\n这是李白豪放诗的代表作，展现了他的人生态度。"
+  },
+  "poem_003": {
+    "item_id": "poem_003",
+    "name": "《蜀道难》",
+    "description": "噫吁嚱，危乎高哉！蜀道之难，难于上青天！",
+    "type": "poem",
+    "rarity": "epic",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "噫吁嚱，危乎高哉！蜀道之难，难于上青天！\n\n这是李白描写蜀地山川的经典之作，展现了蜀道的险峻。"
+  },
+  "poem_004": {
+    "item_id": "poem_004",
+    "name": "《行路难》",
+    "description": "金樽清酒斗十千，玉盘珍羞直万钱。",
+    "type": "poem",
+    "rarity": "rare",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "金樽清酒斗十千，玉盘珍羞直万钱。\n停杯投箸不能食，拔剑四顾心茫然。\n\n这首诗反映了李白在仕途上的挫折和内心的苦闷。"
+  },
+  "poem_005": {
+    "item_id": "poem_005",
+    "name": "《早发白帝城》",
+    "description": "朝辞白帝彩云间，千里江陵一日还。",
+    "type": "poem",
+    "rarity": "common",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "朝辞白帝彩云间，千里江陵一日还。\n两岸猿声啼不住，轻舟已过万重山。\n\n这是李白流放夜郎遇赦后所作，表达了重获自由的喜悦。"
+  },
+  "poem_006": {
+    "item_id": "poem_006",
+    "name": "《望庐山瀑布》",
+    "description": "日照香炉生紫烟，遥看瀑布挂前川。",
+    "type": "poem",
+    "rarity": "common",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "日照香炉生紫烟，遥看瀑布挂前川。\n飞流直下三千尺，疑是银河落九天。\n\n这是李白描写自然景观的经典之作。"
+  },
+  "poem_007": {
+    "item_id": "poem_007",
+    "name": "《赠汪伦》",
+    "description": "李白乘舟将欲行，忽闻岸上踏歌声。",
+    "type": "poem",
+    "rarity": "common",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "李白乘舟将欲行，忽闻岸上踏歌声。\n桃花潭水深千尺，不及汪伦送我情。\n\n这是李白表达友情的经典之作。"
+  },
+  "poem_008": {
+    "item_id": "poem_008",
+    "name": "《黄鹤楼送孟浩然之广陵》",
+    "description": "故人西辞黄鹤楼，烟花三月下扬州。",
+    "type": "poem",
+    "rarity": "rare",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "故人西辞黄鹤楼，烟花三月下扬州。\n孤帆远影碧空尽，唯见长江天际流。\n\n这是李白送别友人的经典之作。"
+  },
+  "poem_009": {
+    "item_id": "poem_009",
+    "name": "《临终歌》",
+    "description": "大鹏飞兮振八裔，中天摧兮力不济。",
+    "type": "poem",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "大鹏飞兮振八裔，中天摧兮力不济。\n余风激兮万世，游扶桑兮挂左袂。\n\n这是李白晚年的作品，表达了他对自己一生的总结。"
+  },
+  "poem_010": {
+    "item_id": "poem_010",
+    "name": "《临终歌》（续）",
+    "description": "后人得之传此，仲尼亡兮谁为出涕。",
+    "type": "poem",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "后人得之传此，仲尼亡兮谁为出涕。\n\n这是李白临终前的感慨，表达了对后世的期望。"
+  },
+  "poem_011": {
+    "item_id": "poem_011",
+    "name": "《临终歌》（续二）",
+    "description": "大鹏一日同风起，扶摇直上九万里。",
+    "type": "poem",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "大鹏一日同风起，扶摇直上九万里。\n假令风歇时下来，犹能簸却沧溟水。\n\n这是李白对自己理想的最后表达。"
+  },
+  "poem_012": {
+    "item_id": "poem_012",
+    "name": "《临终歌》（续三）",
+    "description": "世人见我恒殊调，闻余大言皆冷笑。",
+    "type": "poem",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "世人见我恒殊调，闻余大言皆冷笑。\n宣父犹能畏后生，丈夫未可轻年少。\n\n这是李白对世人的回应，展现了他的自信。"
+  },
+  "poem_013": {
+    "item_id": "poem_013",
+    "name": "《临终歌》（续四）",
+    "description": "大鹏飞兮振八裔，中天摧兮力不济。",
+    "type": "poem",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "大鹏飞兮振八裔，中天摧兮力不济。\n余风激兮万世，游扶桑兮挂左袂。\n\n这是李白对自己一生的最后总结。"
+  },
+  "trophy_chapter1": {
+    "item_id": "trophy_chapter1",
+    "name": "🌿 青年时期的探索者",
+    "description": "收集第一章所有线索的成就奖杯",
+    "type": "trophy",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "🌿 青年时期的探索者\n\n你成功收集了第一章（青年时期）的所有线索，见证了李白离开蜀中、开始游历的重要时刻。\n\n这个奖杯象征着青春与探索，如同初生的嫩芽，充满无限可能。"
+  },
+  "trophy_chapter2": {
+    "item_id": "trophy_chapter2",
+    "name": "⭐ 长安时期的见证者",
+    "description": "收集第二章所有线索的成就奖杯",
+    "type": "trophy",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "⭐ 长安时期的见证者\n\n你成功收集了第二章（长安时期）的所有线索，见证了李白在长安的辉煌与挫折。\n\n这个奖杯象征着辉煌与成就，如同夜空中最亮的星，闪耀着人生的巅峰时刻。"
+  },
+  "trophy_chapter3": {
+    "item_id": "trophy_chapter3",
+    "name": "🌙 晚年时期的记录者",
+    "description": "收集第三章所有线索的成就奖杯",
+    "type": "trophy",
+    "rarity": "legendary",
+    "stackable": false,
+    "collectible": true,
+    "icon": "",
+    "content": "🌙 晚年时期的记录者\n\n你成功收集了第三章（晚年时期）的所有线索，见证了李白晚年的经历和创作。\n\n这个奖杯象征着智慧与沉淀，如同宁静的月光，照亮了人生的最后旅程。"
+  }
+}
+

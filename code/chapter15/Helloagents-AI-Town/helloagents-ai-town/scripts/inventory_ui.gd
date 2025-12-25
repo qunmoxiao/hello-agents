@@ -38,6 +38,9 @@ func _ready():
 	# 连接物品收集系统信号
 	if has_node("/root/ItemCollection"):
 		ItemCollection.item_collected.connect(_on_item_collected)
+		print("[INFO] ✅ 背包UI已连接ItemCollection信号")
+	else:
+		print("[ERROR] ❌ ItemCollection未找到，背包UI无法接收物品收集信号")
 	
 	# 设置网格列数
 	if item_grid:
@@ -62,41 +65,52 @@ func _ready():
 	update_item_list()
 
 func _setup_ui_style():
-	"""设置UI样式"""
+	"""设置UI样式（背包主题）"""
 	if panel:
 		var style_box = StyleBoxFlat.new()
-		style_box.bg_color = Color(0.1, 0.1, 0.15, 0.95)
-		style_box.border_color = Color(0.3, 0.3, 0.4, 1.0)
-		style_box.border_width_left = 4
-		style_box.border_width_top = 4
-		style_box.border_width_right = 4
-		style_box.border_width_bottom = 4
-		style_box.corner_radius_top_left = 10
-		style_box.corner_radius_top_right = 10
-		style_box.corner_radius_bottom_left = 10
-		style_box.corner_radius_bottom_right = 10
+		# ⭐ 背包主题：使用棕色/皮革色系，体现背包的质感
+		style_box.bg_color = Color(0.15, 0.12, 0.10, 0.95)  # 深棕色背景，像皮革
+		style_box.border_color = Color(0.4, 0.3, 0.2, 1.0)  # 棕色边框，像背包边缘
+		style_box.border_width_left = 6  # 增大边框宽度
+		style_box.border_width_top = 6
+		style_box.border_width_right = 6
+		style_box.border_width_bottom = 6
+		style_box.corner_radius_top_left = 15  # 增大圆角
+		style_box.corner_radius_top_right = 15
+		style_box.corner_radius_bottom_left = 15
+		style_box.corner_radius_bottom_right = 15
+		# ⭐ 添加阴影效果，增强背包的立体感
+		style_box.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+		style_box.shadow_size = 10
+		style_box.shadow_offset = Vector2(0, 5)
 		panel.add_theme_stylebox_override("panel", style_box)
 	
 	if item_detail_panel:
 		var detail_style = StyleBoxFlat.new()
-		detail_style.bg_color = Color(0.15, 0.15, 0.2, 0.98)
-		detail_style.border_color = Color(0.4, 0.4, 0.5, 1.0)
-		detail_style.border_width_left = 4
-		detail_style.border_width_top = 4
-		detail_style.border_width_right = 4
-		detail_style.border_width_bottom = 4
-		detail_style.corner_radius_top_left = 10
-		detail_style.corner_radius_top_right = 10
-		detail_style.corner_radius_bottom_left = 10
-		detail_style.corner_radius_bottom_right = 10
+		detail_style.bg_color = Color(0.2, 0.17, 0.14, 0.98)  # 稍亮的棕色
+		detail_style.border_color = Color(0.5, 0.4, 0.3, 1.0)  # 金色边框
+		detail_style.border_width_left = 6
+		detail_style.border_width_top = 6
+		detail_style.border_width_right = 6
+		detail_style.border_width_bottom = 6
+		detail_style.corner_radius_top_left = 15
+		detail_style.corner_radius_top_right = 15
+		detail_style.corner_radius_bottom_left = 15
+		detail_style.corner_radius_bottom_right = 15
+		detail_style.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+		detail_style.shadow_size = 10
+		detail_style.shadow_offset = Vector2(0, 5)
 		item_detail_panel.add_theme_stylebox_override("panel", detail_style)
 	
 	if title_label:
-		title_label.add_theme_color_override("font_color", Color.WHITE)
-		title_label.add_theme_font_size_override("font_size", 40)
+		title_label.add_theme_color_override("font_color", Color(1.0, 0.9, 0.7, 1.0))  # 金色文字
+		title_label.add_theme_font_size_override("font_size", 56)  # 从40增加到56
+		title_label.add_theme_constant_override("outline_size", 4)
+		title_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	
 	if no_item_label:
-		no_item_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7, 1.0))
+		no_item_label.add_theme_color_override("font_color", Color(0.8, 0.7, 0.6, 1.0))  # 淡棕色
+		no_item_label.add_theme_font_size_override("font_size", 40)  # 增大字体
 
 func _input(event: InputEvent):
 	"""处理输入事件"""
@@ -129,10 +143,14 @@ func hide_inventory_ui():
 
 func update_item_list():
 	"""更新物品列表"""
+	print("[DEBUG] 🔄 更新背包物品列表")
+	
 	if not has_node("/root/ItemCollection"):
+		print("[ERROR] ItemCollection未找到，无法更新背包")
 		return
 	
 	if not item_grid:
+		print("[ERROR] item_grid未找到，无法更新背包")
 		return
 	
 	# 清空列表
@@ -141,11 +159,14 @@ func update_item_list():
 	
 	# 获取收集的物品
 	var collected_items = ItemCollection.get_collected_items_info()
+	print("[DEBUG] 已收集物品数量: ", collected_items.size())
+	print("[DEBUG] 已收集物品列表: ", collected_items)
 	
 	if collected_items.is_empty():
 		# 显示"无物品"提示
 		if no_item_label:
 			no_item_label.visible = true
+		print("[DEBUG] 背包为空")
 		return
 	
 	if no_item_label:
@@ -153,28 +174,29 @@ func update_item_list():
 	
 	# 创建物品项
 	for item in collected_items:
+		print("[DEBUG] 创建物品槽: ", item.get("name", "未知"))
 		_create_item_slot(item)
+	
+	print("[DEBUG] ✅ 背包物品列表更新完成")
 
 func _create_item_slot(item: Dictionary):
-	"""创建物品槽UI"""
+	"""创建物品槽UI（背包风格）"""
 	var item_id = item.get("item_id", "")
 	var name = item.get("name", "未知物品")
 	var count = item.get("count", 1)
 	var item_type = item.get("type", "unknown")
 	
-	# 创建物品槽容器
+	# ⭐ 创建物品槽容器 - 增大尺寸
 	var item_slot = VBoxContainer.new()
-	item_slot.custom_minimum_size = Vector2(150, 180)
-	item_slot.add_theme_constant_override("separation", 8)
+	item_slot.custom_minimum_size = Vector2(180, 220)  # 从150x180增加到180x220
+	item_slot.add_theme_constant_override("separation", 10)  # 增大间距
 	
-	# 物品图标（支持加载实际图标）
+	# ⭐ 物品图标（支持加载实际图标）- 增大尺寸
 	var icon_path = item.get("icon", "")
 	var icon_rect = TextureRect.new()
-	icon_rect.custom_minimum_size = Vector2(100, 100)
+	icon_rect.custom_minimum_size = Vector2(120, 120)  # 从100x100增加到120x120
 	icon_rect.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
 	icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon_rect.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon_rect.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	
 	if icon_path != "":
 		var icon_texture = load(icon_path)
@@ -183,34 +205,66 @@ func _create_item_slot(item: Dictionary):
 		else:
 			# 如果加载失败，使用占位符
 			var placeholder = Label.new()
-			placeholder.text = "📦"
-			placeholder.add_theme_font_size_override("font_size", 64)
+			# ⭐ 根据物品类型使用不同的占位符
+			match item_type:
+				"trophy":
+					# 奖杯使用名称中的emoji（如果名称以emoji开头）
+					var item_name = item.get("name", "")
+					if item_name.length() > 0 and item_name[0] in ["🌿", "⭐", "🌙", "🏆"]:
+						placeholder.text = item_name[0]
+					else:
+						placeholder.text = "🏆"
+				"poem":
+					placeholder.text = "📜"
+				_:
+					placeholder.text = "📦"
+			placeholder.add_theme_font_size_override("font_size", 80)  # 从64增加到80
+			placeholder.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			placeholder.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			# 设置占位符大小以填充整个icon_rect
+			placeholder.set_anchors_preset(Control.PRESET_FULL_RECT)
 			icon_rect.add_child(placeholder)
 	else:
 		# 没有图标时使用占位符
 		var placeholder = Label.new()
-		placeholder.text = "📦"
-		placeholder.add_theme_font_size_override("font_size", 64)
+		# ⭐ 根据物品类型使用不同的占位符
+		match item_type:
+			"trophy":
+				# 奖杯使用名称中的emoji（如果名称以emoji开头）
+				var item_name = item.get("name", "")
+				if item_name.length() > 0 and item_name[0] in ["🌿", "⭐", "🌙", "🏆"]:
+					placeholder.text = item_name[0]
+				else:
+					placeholder.text = "🏆"
+			"poem":
+				placeholder.text = "📜"
+			_:
+				placeholder.text = "📦"  # 背包图标
+		placeholder.add_theme_font_size_override("font_size", 80)  # 从64增加到80
 		icon_rect.add_child(placeholder)
 	
 	item_slot.add_child(icon_rect)
 	
-	# 物品名称
+	# ⭐ 物品名称 - 增大字体
 	var name_label = Label.new()
 	name_label.text = name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_color_override("font_color", Color(0.9, 0.9, 0.9, 1.0))
-	name_label.add_theme_font_size_override("font_size", 22)
+	name_label.add_theme_color_override("font_color", Color(1.0, 0.95, 0.85, 1.0))  # 淡金色
+	name_label.add_theme_font_size_override("font_size", 28)  # 从22增加到28
+	name_label.add_theme_constant_override("outline_size", 2)
+	name_label.add_theme_color_override("font_outline_color", Color.BLACK)
 	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	item_slot.add_child(name_label)
 	
-	# 物品数量（如果可堆叠）
+	# ⭐ 物品数量（如果可堆叠）- 增大字体
 	if item.get("stackable", false) and count > 1:
 		var count_label = Label.new()
 		count_label.text = "x%d" % count
 		count_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		count_label.add_theme_color_override("font_color", Color(0.7, 0.9, 1.0, 1.0))
-		count_label.add_theme_font_size_override("font_size", 20)
+		count_label.add_theme_color_override("font_color", Color(0.8, 0.9, 1.0, 1.0))  # 淡蓝色
+		count_label.add_theme_font_size_override("font_size", 24)  # 从20增加到24
+		count_label.add_theme_constant_override("outline_size", 2)
+		count_label.add_theme_color_override("font_outline_color", Color.BLACK)
 		item_slot.add_child(count_label)
 	
 	# 添加点击区域
@@ -219,18 +273,22 @@ func _create_item_slot(item: Dictionary):
 	click_area.gui_input.connect(func(event): _on_item_clicked(event, item_id))
 	item_slot.add_child(click_area)
 	
-	# 设置背景样式
+	# ⭐ 设置背景样式（背包格子风格）
 	var style_box = StyleBoxFlat.new()
-	style_box.bg_color = Color(0.2, 0.2, 0.25, 0.8)
-	style_box.border_color = Color(0.4, 0.4, 0.5, 1.0)
-	style_box.border_width_left = 2
-	style_box.border_width_top = 2
-	style_box.border_width_right = 2
-	style_box.border_width_bottom = 2
-	style_box.corner_radius_top_left = 5
-	style_box.corner_radius_top_right = 5
-	style_box.corner_radius_bottom_left = 5
-	style_box.corner_radius_bottom_right = 5
+	style_box.bg_color = Color(0.25, 0.2, 0.15, 0.9)  # 棕色背景，像背包格子
+	style_box.border_color = Color(0.5, 0.4, 0.3, 1.0)  # 金色边框
+	style_box.border_width_left = 3  # 增大边框
+	style_box.border_width_top = 3
+	style_box.border_width_right = 3
+	style_box.border_width_bottom = 3
+	style_box.corner_radius_top_left = 8  # 增大圆角
+	style_box.corner_radius_top_right = 8
+	style_box.corner_radius_bottom_left = 8
+	style_box.corner_radius_bottom_right = 8
+	# ⭐ 添加内阴影，增强格子感
+	style_box.shadow_color = Color(0.0, 0.0, 0.0, 0.3)
+	style_box.shadow_size = 5
+	style_box.shadow_offset = Vector2(0, 2)
 	
 	var panel = Panel.new()
 	panel.add_theme_stylebox_override("panel", style_box)
@@ -260,6 +318,7 @@ func show_item_detail(item_id: String):
 	
 	if item_detail_name:
 		item_detail_name.text = item.get("name", "未知物品")
+		item_detail_name.add_theme_font_size_override("font_size", 48)  # 增大字体
 	
 	# 显示物品图标（如果有）
 	if item_detail_icon:
@@ -282,13 +341,15 @@ func show_item_detail(item_id: String):
 		var type_text = ""
 		match item_type:
 			"poem":
-				type_text = "诗词"
+				type_text = "📜 诗词"
 			"book":
-				type_text = "书籍"
+				type_text = "📚 书籍"
 			"tool":
-				type_text = "工具"
+				type_text = "🔧 工具"
+			"trophy":
+				type_text = "🏆 奖杯"
 			_:
-				type_text = "其他"
+				type_text = "📦 其他"
 		
 		var rarity_text = ""
 		match rarity:
@@ -305,7 +366,7 @@ func show_item_detail(item_id: String):
 		
 		desc = "类型: %s | 品质: %s\n\n%s" % [type_text, rarity_text, desc]
 		item_detail_desc.text = desc
-		item_detail_desc.add_theme_font_size_override("font_size", 24)
+		item_detail_desc.add_theme_font_size_override("font_size", 32)  # 从24增加到32
 		item_detail_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	
 	if item_detail_content:
@@ -313,7 +374,7 @@ func show_item_detail(item_id: String):
 		if content != "":
 			item_detail_content.text = content
 			item_detail_content.visible = true
-			item_detail_content.add_theme_font_size_override("font_size", 22)
+			item_detail_content.add_theme_font_size_override("font_size", 28)  # 从22增加到28
 			item_detail_content.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		else:
 			item_detail_content.visible = false
@@ -325,7 +386,9 @@ func hide_item_detail():
 
 func _on_item_collected(item_id: String, count: int):
 	"""物品收集回调"""
+	print("[DEBUG] 🎒 背包UI收到物品收集信号: ", item_id, " x", count)
 	update_item_list()
+	print("[DEBUG] 背包UI已更新物品列表")
 	# 可以在这里显示收集提示
 
 func _on_close_button_pressed():
@@ -335,4 +398,3 @@ func _on_close_button_pressed():
 func _on_detail_close_pressed():
 	"""详情关闭按钮点击"""
 	hide_item_detail()
-
