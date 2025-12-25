@@ -210,7 +210,7 @@ func _show_loading_state() -> void:
 	if title_label:
 		title_label.text = current_quiz.get("title", "答题")
 	if question_label:
-		question_label.text = "正在为你准备与 NPC 相关的题目..."
+		question_label.text = "正在为你准备与 李白 相关的题目..."
 	if progress_label:
 		progress_label.text = ""
 	if feedback_label:

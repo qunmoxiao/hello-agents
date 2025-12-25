@@ -110,12 +110,29 @@ func start_dialogue(npc_name: String):
 	current_npc_name = npc_name
 
 	# ⭐ 如果与李白系列对话，启动外部程序
+	var external_app_success = false
 	if npc_name == "青年李白":
-		start_external_app_for_lisi(1)
+		external_app_success = start_external_app_for_lisi(1)
 	elif npc_name == "中年李白":
-		start_external_app_for_lisi(2)
+		external_app_success = start_external_app_for_lisi(2)
 	elif npc_name == "老年李白":
-		start_external_app_for_lisi(3)
+		external_app_success = start_external_app_for_lisi(3)
+
+	# ⭐ 如果外部程序启动成功，不显示聊天框，直接返回
+	if external_app_success:
+		print("[INFO] 外部程序已启动，不显示聊天框")
+		# 通知NPC进入交互状态 (停止移动) 
+		var npc = get_npc_by_name(npc_name)
+		if npc and npc.has_method("set_interacting"):
+			npc.set_interacting(true)
+		# 通知玩家进入交互状态 (禁用移动)
+		var player = get_tree().get_first_node_in_group("player")
+		if player and player.has_method("set_interacting"):
+			player.set_interacting(true)
+		return
+
+	# ⭐ 外部程序启动失败，使用聊天框文字输入
+	print("[INFO] 外部程序启动失败，使用聊天框文字输入")
 
 	# 通知NPC进入交互状态 (停止移动) 
 	var npc = get_npc_by_name(npc_name)
@@ -289,9 +306,10 @@ func get_npc_by_name(npc_name: String) -> Node:
 	return null
 
 # ⭐ 为青年李白启动外部程序
-func start_external_app_for_lisi(param: int):
+func start_external_app_for_lisi(param: int) -> bool:
 	"""为青年李白启动外部程序（跨平台支持）
 	param: 整型参数，传递给外部程序
+	Returns: bool - 如果外部程序启动成功返回true，否则返回false
 	"""
 	print("[INFO] 检测到与青年李白对话，准备启动NetVideoClient，参数: ", param)
 	
@@ -300,11 +318,11 @@ func start_external_app_for_lisi(param: int):
 		var args = PackedStringArray([str(param)])
 		var success = external_app_manager.start_netvideo_client_simple(args)
 		if success:
-			dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
 			print("[INFO] ✅ NetVideoClient已启动")
+			return true
 		else:
-			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
 			print("[ERROR] ❌ NetVideoClient启动失败")
+			return false
 	else:
 		# 备用方案：直接调用（跨平台）
 		var os_name = OS.get_name()
@@ -319,8 +337,7 @@ func start_external_app_for_lisi(param: int):
 			path = NETVIDEO_CLIENT_PATH_WIN
 		else:
 			print("[ERROR] 不支持的操作系统: ", os_name)
-			dialogue_text.append_text("[color=red]❌ 不支持的操作系统[/color]\n")
-			return
+			return false
 		
 		print("[DEBUG] 备用方案路径: ", path)
 		var file_exists = false
@@ -332,8 +349,7 @@ func start_external_app_for_lisi(param: int):
 		print("[DEBUG] 文件是否存在: ", file_exists)
 		if not file_exists:
 			print("[ERROR] 文件不存在: ", path)
-			dialogue_text.append_text("[color=red]❌ 视频通话客户端文件不存在[/color]\n")
-			return
+			return false
 		
 		var output = []
 		var exit_code = -1
@@ -361,16 +377,16 @@ func start_external_app_for_lisi(param: int):
 			else:
 				exit_code = -1
 				print("[ERROR] cmd.exe启动失败")
-			return
+			return exit_code == 0
 		
 		if exit_code == 0:
-			dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
 			print("[INFO] ✅ NetVideoClient已启动（备用方式）")
+			return true
 		else:
-			dialogue_text.append_text("[color=red]❌ 视频通话客户端启动失败[/color]\n")
 			print("[ERROR] ❌ NetVideoClient启动失败，退出代码: ", exit_code)
 			if output.size() > 0:
 				print("[ERROR] 错误输出: ", output)
+			return false
 
 func _setup_dialogue_style(npc_name: String):
 	"""根据NPC设置对话框色彩风格"""
