@@ -319,6 +319,12 @@ func start_external_app_for_lisi(param: int) -> bool:
 		var success = external_app_manager.start_netvideo_client_simple(args)
 		if success:
 			print("[INFO] ✅ NetVideoClient已启动")
+			
+			# ⭐ 外部程序启动成功，触发WebSocket连接成功事件
+			if api_client:
+				api_client.external_dialogue_ws_status_received.emit("connected", "外部对话WebSocket已连接")
+				print("[INFO] ✅ 已触发外部对话WebSocket连接成功事件")
+			
 			return true
 		else:
 			print("[ERROR] ❌ NetVideoClient启动失败")
@@ -377,10 +383,23 @@ func start_external_app_for_lisi(param: int) -> bool:
 			else:
 				exit_code = -1
 				print("[ERROR] cmd.exe启动失败")
+			
+			# ⭐ 如果启动成功，触发WebSocket连接成功事件
+			if exit_code == 0:
+				if api_client:
+					api_client.external_dialogue_ws_status_received.emit("connected", "外部对话WebSocket已连接")
+					print("[INFO] ✅ 已触发外部对话WebSocket连接成功事件")
+			
 			return exit_code == 0
 		
 		if exit_code == 0:
 			print("[INFO] ✅ NetVideoClient已启动（备用方式）")
+			
+			# ⭐ 外部程序启动成功，触发WebSocket连接成功事件
+			if api_client:
+				api_client.external_dialogue_ws_status_received.emit("connected", "外部对话WebSocket已连接")
+				print("[INFO] ✅ 已触发外部对话WebSocket连接成功事件")
+			
 			return true
 		else:
 			print("[ERROR] ❌ NetVideoClient启动失败，退出代码: ", exit_code)
