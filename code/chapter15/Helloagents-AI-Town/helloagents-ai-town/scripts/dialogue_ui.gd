@@ -343,14 +343,17 @@ func start_external_app_for_lisi(param: int):
 			var open_args = PackedStringArray([path])
 			exit_code = OS.execute("open", open_args, output)
 		elif os_name == "Windows" or os_name.begins_with("Windows"):
-			# Windows: 使用OS.create_process通过start命令启动cmd程序，进入目录并执行exe
+			# Windows: 使用cmd先进入目录，然后启动程序，cmd窗口最小化
 			var exe_dir = path.get_base_dir()
 			var exe_name = path.get_file()
+			# 构建命令：cd进入目录，然后启动程序
 			var cmd_command = "cd /d \"" + exe_dir + "\" && \"" + exe_name + "\" " + str(param)
-			var cmd_args = PackedStringArray(["/C", "start", "cmd.exe", "/K", cmd_command])
+			# 使用 start /MIN 启动最小化的cmd窗口
+			var cmd_args = PackedStringArray(["/C", "start", "/MIN", "cmd.exe", "/K", cmd_command])
 			print("[INFO] 执行目录: ", exe_dir)
 			print("[INFO] 执行程序: ", exe_name)
 			print("[INFO] cmd命令: ", cmd_command)
+			print("[INFO] 执行参数: ", str(param))
 			var pid = OS.create_process("cmd.exe", cmd_args, false)
 			if pid > 0:
 				exit_code = 0
