@@ -502,7 +502,23 @@ async def dialogues_websocket(websocket: WebSocket):
 
     try:
         while True:
-            message_text = await websocket.receive_text()
+            # 使用 receive() 方法接收消息，可以处理不同类型的消息
+            message = await websocket.receive()
+            
+            # 检查消息类型
+            if "text" in message:
+                message_text = message["text"]
+            elif "bytes" in message:
+                # 如果是二进制消息，尝试解码为文本
+                try:
+                    message_text = message["bytes"].decode("utf-8")
+                except UnicodeDecodeError:
+                    log_error(f"WS 收到无法解码的二进制消息")
+                    continue
+            else:
+                # 忽略其他类型的消息（如 ping/pong）
+                continue
+
             try:
                 data = json.loads(message_text)
             except json.JSONDecodeError:
