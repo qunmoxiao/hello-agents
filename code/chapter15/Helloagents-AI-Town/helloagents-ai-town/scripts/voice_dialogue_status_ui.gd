@@ -44,10 +44,10 @@ func _on_ws_status_received(status: String, message: String):
 	"""处理WebSocket状态变化"""
 	print("[INFO] 📡 收到WebSocket状态更新: ", status, " - ", message)
 	
-	if status == "connected":
-		show_connected_status()
-	elif status == "disconnected":
-		show_disconnected_status()
+	#if status == "connected":
+	#	show_connected_status()
+	#elif status == "disconnected":
+	#	show_disconnected_status()
 
 func show_connected_status():
 	"""显示连接状态"""
