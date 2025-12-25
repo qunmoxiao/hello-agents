@@ -173,38 +173,26 @@
   },
   "quest_009": {
     "quest_id": "quest_009",
-    "type": "reasoning",
-    "title": "最终推理",
-    "description": "根据收集的所有线索，回答\"李白一生的转折点是什么？\"",
+    "type": "ending",
+    "title": "回望一生",
+    "description": "在茅草屋回望李白的一生，感悟他的人生历程",
     "chapter": 3,
     "is_main": true,
     "required_quests": ["quest_006"],
-    "required_clues": [
-      "clue_001", "clue_002", "clue_101", "clue_102", "clue_103",
-      "clue_003", "clue_004", "clue_201", "clue_202", "clue_203",
-      "clue_005", "clue_006", "clue_301", "clue_302", "clue_303"
-    ],
-    "question": "李白一生的转折点是什么？",
-    "options": [
-      "离开蜀中",
-      "进入长安",
-      "离开长安",
-      "流放夜郎"
-    ],
-    "correct_answer": 2,
     "trigger": {
-      "type": "reasoning",
+      "type": "ending",
+      "location": "hermitage",
       "auto_start": false
     },
     "completion": {
-      "type": "reasoning",
-      "required_clues_count": 15
+      "type": "ending",
+      "trigger_location": "hermitage"
     },
     "reward": {
       "ending": "ending_001",
       "exp": 500
     },
-    "hint": "收集所有15个线索后（6个任务线索+9个场景线索），根据线索推理李白一生的转折点"
+    "hint": "完成最终答题后，前往茅草屋触发结尾总结，回顾李白的一生"
   }
 }
 
