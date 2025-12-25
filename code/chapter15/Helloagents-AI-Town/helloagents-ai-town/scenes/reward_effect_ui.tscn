@@ -1,0 +1,48 @@
+[gd_scene load_steps=2 format=3 uid="uid://reward_effect_ui"]
+
+[ext_resource type="Script" path="res://scripts/reward_effect_ui.gd" id="1_reward_effect"]
+
+[node name="RewardEffectUI" type="CanvasLayer"]
+script = ExtResource("1_reward_effect")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+mouse_filter = 2
+
+[node name="Panel" type="Panel" parent="Control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -800.0
+offset_top = -250.0
+offset_right = 800.0
+offset_bottom = 250.0
+custom_minimum_size = Vector2(1600, 500)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 50.0
+offset_top = 50.0
+offset_right = -50.0
+offset_bottom = -50.0
+
+[node name="IconLabel" type="Label" parent="Control/Panel/VBoxContainer"]
+layout_mode = 2
+text = "✓"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextLabel" type="Label" parent="Control/Panel/VBoxContainer"]
+layout_mode = 2
+text = "收集到关键词：xxx"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+

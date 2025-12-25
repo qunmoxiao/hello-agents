@@ -101,7 +101,7 @@ func start_quest(quest_id: String) -> bool:
 	save_progress()
 	return true
 
-func update_quest_progress(quest_id: String, progress: int = -1, keyword: String = "", item_id: String = ""):
+func update_quest_progress(quest_id: String, progress: int = -1, keyword = "", item_id: String = ""):
 	"""更新任务进度
 	
 	Args:
@@ -137,6 +137,27 @@ func update_quest_progress(quest_id: String, progress: int = -1, keyword: String
 					quest_data["progress"] = collected_count
 					
 					print("[INFO] ✅ 任务进度更新: ", quest_id, " 关键词: ", keyword, " 进度: ", collected_count, "/", required_count, " collected_keywords=", quest_data["collected_keywords"])
+					
+					# ⭐ 显示关键词收集奖励效果
+					# ⭐ 确保只传递主关键词（字符串），而不是数组
+					var keyword_to_show: String = ""
+					
+					# 使用 typeof 检查类型，更安全
+					var keyword_type = typeof(keyword)
+					if keyword_type == TYPE_ARRAY:
+						# 如果是数组，只取第一个元素
+						var keyword_array = keyword as Array
+						if keyword_array.size() > 0:
+							keyword_to_show = str(keyword_array[0])
+							print("[WARN] QuestManager 收到数组类型的关键词，提取主关键词: ", keyword_to_show)
+						else:
+							keyword_to_show = ""
+					else:
+						# 如果是字符串或其他类型，转换为字符串
+						keyword_to_show = str(keyword)
+					
+					if has_node("/root/RewardEffectManager") and keyword_to_show != "":
+						RewardEffectManager.show_keyword_reward(keyword_to_show)
 					
 					# ⭐ 发送进度更新信号
 					quest_progress_updated.emit(quest_id, collected_count, required_count)
@@ -594,4 +615,3 @@ func _auto_start_initial_quests():
 			if can_start and quest_id not in active_quests and quest_id not in completed_quests:
 				start_quest(quest_id)
 				print("[INFO] 自动启动初始任务: ", quest.get("title", quest_id))
-

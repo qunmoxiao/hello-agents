@@ -44,23 +44,7 @@ func _find_ui_nodes():
 	if not inventory_ui:
 		inventory_ui = _find_node_by_name(get_tree().root, "InventoryUI")
 	
-	# 打印结果
-	print("[INFO] ========== UI节点查找结果 ==========")
-	if quest_ui:
-		print("[INFO] ✅ 找到任务UI: ", quest_ui.name, " (路径: ", quest_ui.get_path(), ")")
-	else:
-		print("[ERROR] ❌ 未找到任务UI")
 	
-	if clue_ui:
-		print("[INFO] ✅ 找到线索UI: ", clue_ui.name, " (路径: ", clue_ui.get_path(), ")")
-	else:
-		print("[ERROR] ❌ 未找到线索UI")
-	
-	if inventory_ui:
-		print("[INFO] ✅ 找到背包UI: ", inventory_ui.name, " (路径: ", inventory_ui.get_path(), ")")
-	else:
-		print("[ERROR] ❌ 未找到背包UI")
-	print("[INFO] ====================================")
 	
 	# 如果还是找不到，再延迟一次
 	if not quest_ui or not clue_ui or not inventory_ui:

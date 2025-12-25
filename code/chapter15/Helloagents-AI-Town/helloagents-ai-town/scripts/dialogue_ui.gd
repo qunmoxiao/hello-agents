@@ -217,7 +217,7 @@ func send_message():
 		return
 	
 	# ⭐ 测试功能：如果玩家输入"完成任务"，直接完成当前对话任务
-	if message.contains("任务"):
+	if message.contains("6789"):
 		_complete_dialogue_quests_test(current_npc_name)
 		# 显示提示信息
 		dialogue_text.append_text("\n[color=cyan]玩家:[/color] " + message + "\n")
@@ -577,15 +577,34 @@ func _complete_dialogue_quests_test(npc_name: String):
 			var keywords = quest.get("keywords", [])
 			var required_keywords = quest.get("required_keywords", keywords.size())
 			
+			# ⭐ 确保 keywords 是数组且元素都是字符串
+			if not keywords is Array:
+				print("[WARN] keywords 不是数组类型: ", keywords)
+				continue
+			
 			# 收集所有关键词，更新进度
 			for keyword in keywords:
-				QuestManager.update_quest_progress(quest_id, -1, keyword, "")
+				# ⭐ 确保 keyword 是字符串类型
+				var keyword_str: String = ""
+				if keyword is String:
+					keyword_str = keyword
+				else:
+					# 如果不是字符串，尝试转换为字符串
+					keyword_str = str(keyword)
+					print("[WARN] 关键词不是字符串类型，已转换: ", keyword, " -> ", keyword_str)
+				
+				# ⭐ 只传递字符串类型的关键词
+				if keyword_str != "":
+					QuestManager.update_quest_progress(quest_id, -1, keyword_str, "")
 			
 			# 确保进度达到完成要求
 			var current_progress = quest_data.get("progress", 0)
 			if current_progress < required_keywords:
-				# 如果进度还不够，直接设置进度
-				QuestManager.update_quest_progress(quest_id, required_keywords, "", "")
+				# ⭐ 对于对话任务，不需要通过 progress 参数直接设置进度
+				# 因为 update_quest_progress 会根据关键词自动计算进度
+				# 如果进度还不够，说明关键词收集有问题，直接完成任务即可
+				# complete_quest 函数会自动确保进度达到要求
+				pass
 			
 			# 然后完成任务（complete_quest会检查进度并完成）
 			QuestManager.complete_quest(quest_id)

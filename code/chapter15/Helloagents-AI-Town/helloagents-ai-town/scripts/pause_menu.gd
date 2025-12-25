@@ -87,7 +87,7 @@ func _input(event: InputEvent):
 	
 	# 如果对话框或其他UI打开，不处理Esc键
 	if _is_other_ui_open():
-		print("[DEBUG] 其他UI打开，不处理Esc键")
+		#print("[DEBUG] 其他UI打开，不处理Esc键")
 		return
 	
 	# 检测Esc键（仅在游戏未暂停时）
