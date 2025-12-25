@@ -62,6 +62,7 @@ var quiz_database: Dictionary = {
 	},
 	"region2_palace": {
 		"title": "中年李白知识问答",
+		"npc_name": "中年李白",  # ⭐ 用于动态生成题目，基于与中年李白的对话内容
 		"target_region": 3,  # 答对后解锁区域3
 		"questions": [
 			{
@@ -112,6 +113,7 @@ var quiz_database: Dictionary = {
 	},
 	"region3_dock": {
 		"title": "老年李白知识问答",
+		"npc_name": "老年李白",  # ⭐ 用于动态生成题目，基于与老年李白的对话内容
 		"target_region": 0,  # 已经是最后一个区域，不需要解锁
 		"questions": [
 			{
