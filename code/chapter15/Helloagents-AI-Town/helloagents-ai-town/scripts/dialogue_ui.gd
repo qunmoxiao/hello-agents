@@ -21,8 +21,7 @@ var external_app_manager: ExternalAppManager = null
 
 # ⭐ NetVideoClient路径（备用）
 const NETVIDEO_CLIENT_PATH_MAC = "/Users/tal/Souces/webrtc/rtcengine-mac-release/src/bin/macx/NetVideoClient.app"
-const NETVIDEO_CLIENT_PATH_WIN = "D:\\Source\\wangxiao10.0\\rtcengine-mac-release\\src\\bin\\win64\\Release\\NetVideoClient.exe"
-
+const NETVIDEO_CLIENT_PATH_WIN = "E:\\code\\zhiyin\\zhiyinjiejiewinproject\\VirtualHuman\\VirtualHuman.exe"
 func _ready():
 	# 添加到对话系统组
 	add_to_group("dialogue_system")
@@ -110,9 +109,13 @@ func start_dialogue(npc_name: String):
 	"""开始与NPC对话"""
 	current_npc_name = npc_name
 
-	# ⭐ 如果与青年李白对话，启动外部程序
+	# ⭐ 如果与李白系列对话，启动外部程序
 	if npc_name == "青年李白":
-		start_external_app_for_lisi()
+		start_external_app_for_lisi(1)
+	elif npc_name == "中年李白":
+		start_external_app_for_lisi(2)
+	elif npc_name == "老年李白":
+		start_external_app_for_lisi(3)
 
 	# 通知NPC进入交互状态 (停止移动) 
 	var npc = get_npc_by_name(npc_name)
@@ -286,13 +289,16 @@ func get_npc_by_name(npc_name: String) -> Node:
 	return null
 
 # ⭐ 为青年李白启动外部程序
-func start_external_app_for_lisi():
-	"""为青年李白启动外部程序（跨平台支持）"""
-	print("[INFO] 检测到与青年李白对话，准备启动NetVideoClient")
+func start_external_app_for_lisi(param: int):
+	"""为青年李白启动外部程序（跨平台支持）
+	param: 整型参数，传递给外部程序
+	"""
+	print("[INFO] 检测到与青年李白对话，准备启动NetVideoClient，参数: ", param)
 	
 	# 使用外部程序管理器（推荐方式，已支持跨平台）
 	if external_app_manager and external_app_manager.has_method("start_netvideo_client_simple"):
-		var success = external_app_manager.start_netvideo_client_simple()
+		var args = PackedStringArray([str(param)])
+		var success = external_app_manager.start_netvideo_client_simple(args)
 		if success:
 			dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
 			print("[INFO] ✅ NetVideoClient已启动")
@@ -337,21 +343,21 @@ func start_external_app_for_lisi():
 			var open_args = PackedStringArray([path])
 			exit_code = OS.execute("open", open_args, output)
 		elif os_name == "Windows" or os_name.begins_with("Windows"):
-			# Windows: 尝试使用OS.create_process
-			print("[DEBUG] 备用方案：尝试使用OS.create_process")
-			var pid = OS.create_process(path, PackedStringArray(), false)
+			# Windows: 使用OS.create_process通过start命令启动cmd程序，进入目录并执行exe
+			var exe_dir = path.get_base_dir()
+			var exe_name = path.get_file()
+			var cmd_command = "cd /d \"" + exe_dir + "\" && \"" + exe_name + "\" " + str(param)
+			var cmd_args = PackedStringArray(["/C", "start", "cmd.exe", "/K", cmd_command])
+			print("[INFO] 执行目录: ", exe_dir)
+			print("[INFO] 执行程序: ", exe_name)
+			print("[INFO] cmd命令: ", cmd_command)
+			var pid = OS.create_process("cmd.exe", cmd_args, false)
 			if pid > 0:
-				print("[INFO] ✅ 使用create_process成功启动（备用方式），PID: ", pid)
-				dialogue_text.append_text("[color=green]📹 视频通话客户端已启动...[/color]\n")
-				return
+				exit_code = 0
+				print("[INFO] cmd.exe已启动，------------进程ID: ", pid)
 			else:
-				print("[WARN] create_process失败，尝试start命令")
-				# 使用start命令
-				var cmd_args = PackedStringArray(["/C", "start", "", "/B", path])
-				exit_code = OS.execute("cmd.exe", cmd_args, output, true, false)
-		else:
-			print("[ERROR] 不支持的操作系统: ", os_name)
-			dialogue_text.append_text("[color=red]❌ 不支持的操作系统[/color]\n")
+				exit_code = -1
+				print("[ERROR] cmd.exe启动失败")
 			return
 		
 		if exit_code == 0:
