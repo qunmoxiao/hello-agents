@@ -9,6 +9,7 @@ signal npc_list_received(npcs: Array)
 signal quiz_generated(quiz_id: String, quiz_data: Dictionary)
 signal quiz_generation_failed(quiz_id: String, error_message: String)
 signal quest_update_received(npc_name: String, quest_id: String, matched_keyword: String)
+signal external_dialogue_ws_status_received(status: String, message: String)  # ⭐ 外部对话WebSocket连接状态信号
 
 # HTTP请求节点
 var http_chat: HTTPRequest
@@ -304,6 +305,32 @@ func _handle_quest_update_message(message: String):
 		
 		print("[INFO] 📡 收到任务更新: quest_id=", quest_id, ", keyword=", matched_keyword)
 		quest_update_received.emit(npc_name, quest_id, matched_keyword)
+	elif msg_type == "external_dialogue_ws_status":
+		# ⭐ 处理外部对话WebSocket连接状态
+		var status = data.get("status", "")
+		var status_message = data.get("message", "")
+		print("[INFO] 📡 外部对话WebSocket状态: ", status, " - ", status_message)
+		
+		# 发送信号
+		external_dialogue_ws_status_received.emit(status, status_message)
+		
+		# ⭐ TODO: 处理外部对话WebSocket连接状态变化
+		# 当 status == "connected" 时，表示外部对话WebSocket已连接
+		# 当 status == "disconnected" 时，表示外部对话WebSocket已断开
+		# 
+		# 可以在这里：
+		# 1. 更新UI显示连接状态（如显示连接指示器）
+		# 2. 启用/禁用相关功能
+		# 3. 显示提示信息给用户
+		# 4. 记录连接状态日志
+		# 
+		# 示例：
+		# if status == "connected":
+		#     # 显示连接成功提示
+		#     print("[INFO] ✅ 外部对话系统已连接")
+		# elif status == "disconnected":
+		#     # 显示断开提示
+		#     print("[WARN] ⚠️ 外部对话系统已断开")
 	elif message == "pong":
 		# 心跳响应，忽略
 		pass

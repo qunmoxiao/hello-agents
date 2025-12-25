@@ -142,6 +142,10 @@ class QuestUpdateManager:
 # 全局任务更新管理器
 quest_update_manager = QuestUpdateManager()
 
+# ⭐ 外部对话WebSocket连接状态跟踪
+external_dialogue_ws_connected: bool = False
+external_dialogue_ws_lock = asyncio.Lock()
+
 # ==================== API路由 ====================
 
 @app.get("/")
@@ -580,6 +584,20 @@ async def dialogues_websocket(websocket: WebSocket):
     npc_mgr, _, _ = get_managers()
 
     log_info("🌐 WebSocket 连接已建立: /ws/dialogues")
+    
+    # ⭐ 更新连接状态并通知前端
+    async with external_dialogue_ws_lock:
+        global external_dialogue_ws_connected
+        external_dialogue_ws_connected = True
+    
+    # 广播连接状态给前端
+    status_message = {
+        "type": "external_dialogue_ws_status",
+        "status": "connected",
+        "message": "外部对话WebSocket已连接"
+    }
+    await quest_update_manager.broadcast_update(status_message)
+    log_info("📡 已通知前端: 外部对话WebSocket连接成功")
 
     try:
         while True:
@@ -673,6 +691,19 @@ async def dialogues_websocket(websocket: WebSocket):
     except Exception as exc:
         log_error(f"WS 连接异常中断: {exc}")
     finally:
+        # ⭐ 更新连接状态并通知前端
+        async with external_dialogue_ws_lock:
+            external_dialogue_ws_connected = False
+        
+        # 广播连接状态给前端
+        status_message = {
+            "type": "external_dialogue_ws_status",
+            "status": "disconnected",
+            "message": "外部对话WebSocket已断开"
+        }
+        await quest_update_manager.broadcast_update(status_message)
+        log_info("📡 已通知前端: 外部对话WebSocket连接断开")
+        
         try:
             await websocket.close()
         except RuntimeError:
