@@ -310,7 +310,8 @@ func _handle_quest_update_message(message: String):
 		var status = data.get("status", "")
 		var status_message = data.get("message", "")
 		print("[INFO] 📡 外部对话WebSocket状态: ", status, " - ", status_message)
-		
+		var player = get_tree().get_first_node_in_group("player")
+		player.set_interacting(false)
 		# 发送信号
 		external_dialogue_ws_status_received.emit(status, status_message)
 		
