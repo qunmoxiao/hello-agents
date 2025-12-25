@@ -10,6 +10,10 @@ var active_quests: Dictionary = {}
 var completed_quests: Dictionary = {}
 var quest_database: Dictionary = {}
 
+# ⭐ WebSocket任务更新消息队列（确保所有消息都被处理）
+var quest_update_queue: Array[Dictionary] = []
+var is_processing_quest_updates: bool = false
+
 func _ready():
 	print("[INFO] 任务管理器已初始化")
 	load_quest_database()
@@ -75,13 +79,47 @@ func _on_quest_update_received(npc_name: String, quest_id: String, matched_keywo
 	"""
 	print("[INFO] 📡 收到外部对话任务更新: quest_id=", quest_id, ", keyword=", matched_keyword)
 	
-	# 检查任务是否存在且在进行中
-	if quest_id not in active_quests:
-		print("[WARN] 任务更新失败: 任务不存在或未激活 - ", quest_id)
+	# ⭐ 将消息加入队列，确保所有消息都被处理
+	var update_data = {
+		"npc_name": npc_name,
+		"quest_id": quest_id,
+		"matched_keyword": matched_keyword
+	}
+	quest_update_queue.append(update_data)
+	print("[DEBUG] 📦 任务更新消息已加入队列: keyword=", matched_keyword, ", 队列长度=", quest_update_queue.size())
+	
+	# 处理队列
+	_process_quest_update_queue()
+
+func _process_quest_update_queue():
+	"""处理任务更新队列，确保所有消息按顺序处理"""
+	if is_processing_quest_updates or quest_update_queue.is_empty():
 		return
 	
-	# 更新任务进度
-	update_quest_progress(quest_id, -1, matched_keyword, "")
+	is_processing_quest_updates = true
+	
+	# 处理队列中的所有消息
+	while not quest_update_queue.is_empty():
+		var update_data = quest_update_queue.pop_front()
+		var npc_name = update_data["npc_name"]
+		var quest_id = update_data["quest_id"]
+		var matched_keyword = update_data["matched_keyword"]
+		
+		print("[DEBUG] 🔄 处理队列中的任务更新: quest_id=", quest_id, ", keyword=", matched_keyword)
+		
+		# 检查任务是否存在且在进行中
+		if quest_id not in active_quests:
+			print("[WARN] 任务更新失败: 任务不存在或未激活 - ", quest_id)
+			continue
+		
+		# 更新任务进度
+		update_quest_progress(quest_id, -1, matched_keyword, "")
+		
+		# ⭐ 延迟一帧，确保奖励提示按顺序显示
+		await get_tree().process_frame
+	
+	is_processing_quest_updates = false
+	print("[DEBUG] ✅ 任务更新队列处理完成")
 
 func load_quest_database():
 	"""加载任务数据库"""
@@ -159,7 +197,10 @@ func update_quest_progress(quest_id: String, progress: int = -1, keyword = "", i
 					quest_data["collected_keywords"] = []
 				
 				# ⭐ 检查关键词是否已收集
-				if keyword not in quest_data["collected_keywords"]:
+				var already_collected = keyword in quest_data["collected_keywords"]
+				print("[DEBUG] 🔍 检查关键词: ", keyword, " 是否已收集: ", already_collected, " 已收集列表: ", quest_data["collected_keywords"])
+				
+				if not already_collected:
 					quest_data["collected_keywords"].append(keyword)
 					var collected_count = quest_data["collected_keywords"].size()
 					# ⭐ 获取required_keywords，如果不存在则使用默认值1
@@ -189,7 +230,10 @@ func update_quest_progress(quest_id: String, progress: int = -1, keyword = "", i
 						keyword_to_show = str(keyword)
 					
 					if has_node("/root/RewardEffectManager") and keyword_to_show != "":
+						print("[DEBUG] 🎁 准备显示奖励提示: keyword=", keyword_to_show)
 						RewardEffectManager.show_keyword_reward(keyword_to_show)
+					else:
+						print("[DEBUG] ⚠️ 无法显示奖励提示: RewardEffectManager=", has_node("/root/RewardEffectManager"), ", keyword_to_show=", keyword_to_show)
 					
 					# ⭐ 发送进度更新信号
 					quest_progress_updated.emit(quest_id, collected_count, required_count)

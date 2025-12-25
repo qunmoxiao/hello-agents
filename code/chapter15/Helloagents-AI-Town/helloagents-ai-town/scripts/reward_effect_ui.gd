@@ -9,6 +9,7 @@ signal reward_finished
 @onready var text_label: Label = $Control/Panel/VBoxContainer/TextLabel
 
 var current_tween: Tween = null
+var is_playing: bool = false  # ⭐ 标志：是否正在播放动画
 
 func _ready():
 	visible = false
@@ -22,6 +23,16 @@ func show_keyword_reward(keyword, chapter: int):
 		keyword: 收集到的关键词（可能是字符串或数组）
 		chapter: 当前章节（1, 2, 3）
 	"""
+	# ⭐ 如果正在播放动画，等待前一个动画完成
+	if is_playing:
+		print("[DEBUG] 等待前一个奖励动画完成...")
+		await reward_finished
+		# 等待一帧，确保状态已重置
+		await get_tree().process_frame
+	
+	# ⭐ 设置播放标志
+	is_playing = true
+	
 	_setup_ui_style(chapter)
 	
 	# ⭐ 确保只显示主关键词（处理各种可能的输入格式）
@@ -64,8 +75,11 @@ func show_keyword_reward(keyword, chapter: int):
 	text_label.text = "收集到关键词：\n%s" % display_keyword
 	print("[DEBUG] 最终显示的关键词: ", display_keyword)
 	
-	# 显示并播放动画
-	_play_reward_animation()
+	# 显示并播放动画（等待动画完成）
+	await _play_reward_animation()
+	
+	# ⭐ 重置播放标志
+	is_playing = false
 
 func show_quiz_reward(correct_count: int, chapter: int):
 	"""显示答题正确奖励
@@ -73,6 +87,16 @@ func show_quiz_reward(correct_count: int, chapter: int):
 		correct_count: 已答对的题目数量
 		chapter: 当前章节（1, 2, 3）
 	"""
+	# ⭐ 如果正在播放动画，等待前一个动画完成
+	if is_playing:
+		print("[DEBUG] 等待前一个奖励动画完成...")
+		await reward_finished
+		# 等待一帧，确保状态已重置
+		await get_tree().process_frame
+	
+	# ⭐ 设置播放标志
+	is_playing = true
+	
 	_setup_ui_style(chapter)
 	
 	# 设置图标和文本（根据答对题目数量显示）
@@ -82,8 +106,11 @@ func show_quiz_reward(correct_count: int, chapter: int):
 	else:
 		text_label.text = "答对 %d 题！" % correct_count
 	
-	# 显示并播放动画
-	_play_reward_animation()
+	# 显示并播放动画（等待动画完成）
+	await _play_reward_animation()
+	
+	# ⭐ 重置播放标志
+	is_playing = false
 
 func _setup_ui_style(chapter: int):
 	"""根据章节设置UI样式（大号特效）

@@ -253,9 +253,13 @@ func _process(delta: float):
 				print("[INFO] ✅ 任务更新WebSocket已连接")
 			
 			# 接收消息
+			var packet_count = quest_ws_client.get_available_packet_count()
+			if packet_count > 0:
+				print("[DEBUG] 📦 WebSocket收到 ", packet_count, " 个待处理消息")
 			while quest_ws_client.get_available_packet_count() > 0:
 				var packet = quest_ws_client.get_packet()
 				var message = packet.get_string_from_utf8()
+				print("[DEBUG] 📦 处理WebSocket消息: ", message)
 				_handle_quest_update_message(message)
 		
 		WebSocketPeer.STATE_CLOSED:

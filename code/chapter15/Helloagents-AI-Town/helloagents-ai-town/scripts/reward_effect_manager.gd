@@ -39,19 +39,25 @@ func show_quiz_reward(correct_count: int):
 func _add_to_queue(reward_data: Dictionary):
 	"""将奖励添加到队列"""
 	reward_queue.append(reward_data)
+	var keyword = reward_data.get("keyword", "")
+	print("[DEBUG] 🎁 奖励已加入队列: keyword=", keyword, ", 队列长度=", reward_queue.size(), ", 正在显示=", is_showing_reward)
 	_process_queue()
 
 func _process_queue():
 	"""处理奖励队列"""
 	if is_showing_reward or reward_queue.is_empty():
+		if is_showing_reward:
+			print("[DEBUG] 🎁 队列处理跳过: 正在显示奖励, 队列长度=", reward_queue.size())
 		return
 	
 	is_showing_reward = true
 	var reward_data = reward_queue.pop_front()
+	var keyword = reward_data.get("keyword", "")
+	print("[DEBUG] 🎁 开始处理队列中的奖励: keyword=", keyword, ", 剩余队列长度=", reward_queue.size())
 	_show_reward(reward_data)
 
 func _show_reward(reward_data: Dictionary):
-	"""显示奖励效果"""
+	"""显示奖励效果 - 确保一个提示完全消失后才显示下一个"""
 	# 创建或获取奖励UI实例
 	if not reward_ui_instance:
 		reward_ui_instance = REWARD_UI_SCENE.instantiate()
@@ -60,18 +66,21 @@ func _show_reward(reward_data: Dictionary):
 	# 获取当前章节
 	var current_chapter = _get_current_chapter()
 	
-	# 显示奖励
+	# ⭐ 显示奖励并等待完全完成（包括动画和状态重置）
 	if reward_data["type"] == "keyword":
-		reward_ui_instance.show_keyword_reward(reward_data["keyword"], current_chapter)
+		await reward_ui_instance.show_keyword_reward(reward_data["keyword"], current_chapter)
+		print("[DEBUG] 🎁 关键词奖励动画已完成: ", reward_data["keyword"])
 	elif reward_data["type"] == "quiz":
 		var correct_count = reward_data.get("correct_count", 1)
-		reward_ui_instance.show_quiz_reward(correct_count, current_chapter)
+		await reward_ui_instance.show_quiz_reward(correct_count, current_chapter)
+		print("[DEBUG] 🎁 答题奖励动画已完成: correct_count=", correct_count)
 	
-	# 等待奖励动画完成
-	await reward_ui_instance.reward_finished
+	# ⭐ 额外等待一帧，确保UI状态完全重置
+	await get_tree().process_frame
 	
 	# 继续处理队列
 	is_showing_reward = false
+	print("[DEBUG] 🎁 奖励显示完成，继续处理队列，剩余队列长度=", reward_queue.size())
 	_process_queue()
 
 func _get_current_chapter() -> int:
