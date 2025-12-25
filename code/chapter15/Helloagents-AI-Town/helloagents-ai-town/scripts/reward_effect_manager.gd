@@ -90,29 +90,58 @@ func _process_queue():
 func _show_reward(reward_data: Dictionary):
 	"""显示奖励效果 - 确保一个提示完全消失后才显示下一个"""
 	# 创建或获取奖励UI实例
-	if not reward_ui_instance:
+	# ⭐ 检查实例是否存在且仍在场景树中
+	if not reward_ui_instance or not is_instance_valid(reward_ui_instance) or not reward_ui_instance.is_inside_tree():
+		if reward_ui_instance and is_instance_valid(reward_ui_instance):
+			# 如果实例存在但不在场景树中，先清理
+			reward_ui_instance.queue_free()
 		reward_ui_instance = REWARD_UI_SCENE.instantiate()
+		# ⭐ 设置较高的layer，确保奖励UI显示在其他UI之上
+		reward_ui_instance.layer = 10  # 设置较高的层级，确保显示在最上层
 		get_tree().root.add_child(reward_ui_instance)
+		# ⭐ 等待多帧，确保 @onready 节点已初始化（_ready() 被调用）
+		await get_tree().process_frame
+		await get_tree().process_frame
+		print("[DEBUG] 🎁 创建新的奖励UI实例，layer=", reward_ui_instance.layer)
+	
+	# ⭐ 再次检查实例是否有效
+	if not reward_ui_instance or not is_instance_valid(reward_ui_instance):
+		print("[ERROR] 🎁 奖励UI实例无效，无法显示奖励")
+		is_showing_reward = false
+		_process_queue()
+		return
+	
+	# ⭐ 检查 @onready 节点是否已准备好
+	if not reward_ui_instance.has_method("show_keyword_reward"):
+		print("[ERROR] 🎁 奖励UI实例方法不可用，等待初始化...")
+		await get_tree().process_frame
+		await get_tree().process_frame
 	
 	# 获取当前章节
 	var current_chapter = _get_current_chapter()
 	
 	# ⭐ 显示奖励并等待完全完成（包括动画和状态重置）
 	if reward_data["type"] == "keyword":
+		print("[DEBUG] 🎁 显示关键词奖励: ", reward_data["keyword"])
 		await reward_ui_instance.show_keyword_reward(reward_data["keyword"], current_chapter)
 		print("[DEBUG] 🎁 关键词奖励动画已完成: ", reward_data["keyword"])
 	elif reward_data["type"] == "quiz":
 		var correct_count = reward_data.get("correct_count", 1)
+		print("[DEBUG] 🎁 显示答题奖励: correct_count=", correct_count)
 		await reward_ui_instance.show_quiz_reward(correct_count, current_chapter)
 		print("[DEBUG] 🎁 答题奖励动画已完成: correct_count=", correct_count)
 	elif reward_data["type"] == "clue":
 		var clue_title = reward_data.get("clue_title", "")
-		reward_ui_instance.show_clue_reward(clue_title, current_chapter)
+		print("[DEBUG] 🎁 显示线索奖励: ", clue_title)
+		await reward_ui_instance.show_clue_reward(clue_title, current_chapter)
+		print("[DEBUG] 🎁 线索奖励动画已完成: ", clue_title)
 	elif reward_data["type"] == "achievement":
 		var achievement_title = reward_data.get("achievement_title", "")
 		var chapter = reward_data.get("chapter", current_chapter)
 		var trophy_name = reward_data.get("trophy_name", "")
-		reward_ui_instance.show_achievement_reward(achievement_title, chapter, trophy_name)
+		print("[DEBUG] 🎁 显示成就奖励: ", achievement_title)
+		await reward_ui_instance.show_achievement_reward(achievement_title, chapter, trophy_name)
+		print("[DEBUG] 🎁 成就奖励动画已完成: ", achievement_title)
 	
 	# ⭐ 额外等待一帧，确保UI状态完全重置
 	await get_tree().process_frame

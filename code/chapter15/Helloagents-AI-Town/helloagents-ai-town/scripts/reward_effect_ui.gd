@@ -23,6 +23,21 @@ func show_keyword_reward(keyword, chapter: int):
 		keyword: 收集到的关键词（可能是字符串或数组）
 		chapter: 当前章节（1, 2, 3）
 	"""
+	# ⭐ 确保 @onready 节点已准备好
+	if not control or not panel or not icon_label or not text_label:
+		print("[WARN] 奖励UI节点未准备好，等待初始化...")
+		await get_tree().process_frame
+		await get_tree().process_frame
+		# 如果仍然未准备好，尝试重新获取节点
+		if not control:
+			control = get_node_or_null("Control")
+		if not panel:
+			panel = get_node_or_null("Control/Panel")
+		if not icon_label:
+			icon_label = get_node_or_null("Control/Panel/VBoxContainer/IconLabel")
+		if not text_label:
+			text_label = get_node_or_null("Control/Panel/VBoxContainer/TextLabel")
+	
 	# ⭐ 如果正在播放动画，等待前一个动画完成
 	if is_playing:
 		print("[DEBUG] 等待前一个奖励动画完成...")
@@ -81,6 +96,7 @@ func show_keyword_reward(keyword, chapter: int):
 	
 	# ⭐ 重置播放标志
 	is_playing = false
+	reward_finished.emit()
 
 func show_quiz_reward(correct_count: int, chapter: int):
 	"""显示答题正确奖励
@@ -88,6 +104,21 @@ func show_quiz_reward(correct_count: int, chapter: int):
 		correct_count: 已答对的题目数量
 		chapter: 当前章节（1, 2, 3）
 	"""
+	# ⭐ 确保 @onready 节点已准备好
+	if not control or not panel or not icon_label or not text_label:
+		print("[WARN] 奖励UI节点未准备好，等待初始化...")
+		await get_tree().process_frame
+		await get_tree().process_frame
+		# 如果仍然未准备好，尝试重新获取节点
+		if not control:
+			control = get_node_or_null("Control")
+		if not panel:
+			panel = get_node_or_null("Control/Panel")
+		if not icon_label:
+			icon_label = get_node_or_null("Control/Panel/VBoxContainer/IconLabel")
+		if not text_label:
+			text_label = get_node_or_null("Control/Panel/VBoxContainer/TextLabel")
+	
 	# ⭐ 如果正在播放动画，等待前一个动画完成
 	if is_playing:
 		print("[DEBUG] 等待前一个奖励动画完成...")
@@ -108,8 +139,12 @@ func show_quiz_reward(correct_count: int, chapter: int):
 	else:
 		text_label.text = "[center][color=%s]答对 %d 题！[/color][/center]" % [text_color_hex, correct_count]
 	
-	# 显示并播放动画
-	_play_reward_animation()
+	# 显示并播放动画（等待动画完成）
+	await _play_reward_animation()
+	
+	# ⭐ 重置播放标志
+	is_playing = false
+	reward_finished.emit()
 
 func show_clue_reward(clue_title: String, chapter: int):
 	"""显示线索收集奖励
@@ -117,6 +152,31 @@ func show_clue_reward(clue_title: String, chapter: int):
 		clue_title: 收集到的线索标题
 		chapter: 当前章节（1, 2, 3）
 	"""
+	# ⭐ 确保 @onready 节点已准备好
+	if not control or not panel or not icon_label or not text_label:
+		print("[WARN] 奖励UI节点未准备好，等待初始化...")
+		await get_tree().process_frame
+		await get_tree().process_frame
+		# 如果仍然未准备好，尝试重新获取节点
+		if not control:
+			control = get_node_or_null("Control")
+		if not panel:
+			panel = get_node_or_null("Control/Panel")
+		if not icon_label:
+			icon_label = get_node_or_null("Control/Panel/VBoxContainer/IconLabel")
+		if not text_label:
+			text_label = get_node_or_null("Control/Panel/VBoxContainer/TextLabel")
+	
+	# ⭐ 如果正在播放动画，等待前一个动画完成
+	if is_playing:
+		print("[DEBUG] 等待前一个奖励动画完成...")
+		await reward_finished
+		# 等待一帧，确保状态已重置
+		await get_tree().process_frame
+	
+	# ⭐ 设置播放标志
+	is_playing = true
+	
 	_setup_ui_style(chapter)
 	
 	# 设置图标和文本
@@ -124,8 +184,12 @@ func show_clue_reward(clue_title: String, chapter: int):
 	var text_color_hex = text_label.get_theme_color("default_color").to_html()
 	text_label.text = "[center]收集到线索：\n[color=%s]%s[/color][/center]" % [text_color_hex, clue_title]
 	
-	# 显示并播放动画
-	_play_reward_animation()
+	# 显示并播放动画（等待动画完成）
+	await _play_reward_animation()
+	
+	# ⭐ 重置播放标志
+	is_playing = false
+	reward_finished.emit()
 
 func show_achievement_reward(achievement_title: String, chapter: int, trophy_name: String = ""):
 	"""显示成就奖励
@@ -134,6 +198,31 @@ func show_achievement_reward(achievement_title: String, chapter: int, trophy_nam
 		chapter: 当前章节（1, 2, 3）
 		trophy_name: 奖杯名称（用于提示）
 	"""
+	# ⭐ 确保 @onready 节点已准备好
+	if not control or not panel or not icon_label or not text_label:
+		print("[WARN] 奖励UI节点未准备好，等待初始化...")
+		await get_tree().process_frame
+		await get_tree().process_frame
+		# 如果仍然未准备好，尝试重新获取节点
+		if not control:
+			control = get_node_or_null("Control")
+		if not panel:
+			panel = get_node_or_null("Control/Panel")
+		if not icon_label:
+			icon_label = get_node_or_null("Control/Panel/VBoxContainer/IconLabel")
+		if not text_label:
+			text_label = get_node_or_null("Control/Panel/VBoxContainer/TextLabel")
+	
+	# ⭐ 如果正在播放动画，等待前一个动画完成
+	if is_playing:
+		print("[DEBUG] 等待前一个奖励动画完成...")
+		await reward_finished
+		# 等待一帧，确保状态已重置
+		await get_tree().process_frame
+	
+	# ⭐ 设置播放标志
+	is_playing = true
+	
 	_setup_ui_style(chapter)
 	
 	# ⭐ 根据章节使用不同的奖杯图标
@@ -166,6 +255,8 @@ func show_achievement_reward(achievement_title: String, chapter: int, trophy_nam
 	
 	# ⭐ 重置播放标志
 	is_playing = false
+	reward_finished.emit()
+	reward_finished.emit()
 
 func _setup_ui_style(chapter: int):
 	"""根据章节设置UI样式（大号特效）

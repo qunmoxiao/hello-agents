@@ -396,7 +396,10 @@ func _on_option_selected(option_index: int):
 		
 		# ⭐ 显示答题正确奖励效果（传递已答对的题目数量）
 		if has_node("/root/RewardEffectManager"):
+			print("[DEBUG] 🎁 准备显示答题奖励: correct_count=", correct_count)
 			RewardEffectManager.show_quiz_reward(correct_count)
+		else:
+			print("[ERROR] ⚠️ RewardEffectManager未找到，无法显示答题奖励")
 	else:
 		show_feedback("回答错误！正确答案是: %s" % correct_option, Color.RED)
 		print("[INFO] ❌ 回答错误，正确答案是: ", correct_option)

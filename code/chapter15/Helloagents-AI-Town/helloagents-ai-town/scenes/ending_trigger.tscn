@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://ending_trigger_scene"]
+
+[ext_resource type="Script" path="res://scripts/ending_trigger.gd" id="1_ending_trigger"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_trigger"]
+size = Vector2(200, 100)
+
+[node name="EndingTrigger" type="Area2D"]
+script = ExtResource("1_ending_trigger")
+hint_text = "按E键查看剧本总结"
+required_quest = "quest_006"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_trigger")
+

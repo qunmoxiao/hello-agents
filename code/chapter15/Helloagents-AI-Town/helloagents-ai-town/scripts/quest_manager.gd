@@ -318,7 +318,12 @@ func complete_quest(quest_id: String):
 				if has_node("/root/RewardEffectManager"):
 					var clue_info = ClueManager.get_clue_info(reward["clue"])
 					if clue_info.has("title"):
+						print("[DEBUG] 🎁 准备显示线索奖励: ", clue_info["title"])
 						RewardEffectManager.show_clue_reward(clue_info["title"])
+					else:
+						print("[WARN] ⚠️ 线索信息中没有标题: ", reward["clue"])
+				else:
+					print("[ERROR] ⚠️ RewardEffectManager未找到，无法显示线索奖励")
 			else:
 				print("[WARN] ⚠️ 线索收集失败: ", reward["clue"])
 		else:

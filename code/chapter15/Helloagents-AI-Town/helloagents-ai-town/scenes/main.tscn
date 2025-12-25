@@ -1,4 +1,4 @@
-[gd_scene load_steps=83 format=3 uid="uid://vd6f817st20r"]
+[gd_scene load_steps=86 format=3 uid="uid://vd6f817st20r"]
 
 [ext_resource type="Script" uid="uid://dyfhfmncwhby0" path="res://scripts/main.gd" id="1_tbgi4"]
 [ext_resource type="Texture2D" uid="uid://dvs41irukbpji" path="res://assets/interiors/背景1.png" id="2_muem4"]
@@ -20,6 +20,9 @@
 [ext_resource type="PackedScene" path="res://scenes/scene_guide_ui.tscn" id="19_scene_guide"]
 [ext_resource type="PackedScene" path="res://scenes/controls_hint_ui.tscn" id="20_controls_hint"]
 [ext_resource type="PackedScene" path="res://scenes/clue_trigger.tscn" id="20_gqmmt"]
+[ext_resource type="PackedScene" path="res://scenes/voice_dialogue_status_ui.tscn" id="21_voice_status"]
+[ext_resource type="PackedScene" path="res://scenes/ending_summary_ui.tscn" id="22_ending_summary"]
+[ext_resource type="PackedScene" path="res://scenes/ending_trigger.tscn" id="23_ending_trigger"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_yq6so"]
 atlas = ExtResource("12_muem4")
@@ -192,7 +195,7 @@ region = Rect2(448, 0, 112, 195)
 atlas = ExtResource("16_0ld40")
 region = Rect2(560, 0, 112, 195)
 
-[sub_resource type="SpriteFrames" id="SpriteFrames_yc10j"]
+[sub_resource type="SpriteFrames" id="SpriteFrames_pm3ni"]
 resource_local_to_scene = true
 animations = [{
 "frames": [{
@@ -337,6 +340,8 @@ script = ExtResource("1_tbgi4")
 
 [node name="ControlsHintUI" parent="." instance=ExtResource("20_controls_hint")]
 
+[node name="EndingSummaryUI" parent="." instance=ExtResource("22_ending_summary")]
+
 [node name="Background2" type="Sprite2D" parent="."]
 position = Vector2(4021, 1039)
 scale = Vector2(4, 2.388)
@@ -390,11 +395,13 @@ z_index = 1
 position = Vector2(3241, 1027)
 npc_name = "中年李白"
 npc_title = ""
-sprite_frames = SubResource("SpriteFrames_yc10j")
+sprite_frames = SubResource("SpriteFrames_pm3ni")
 wander_enabled = false
 wander_range = 5.0
 
 [node name="DialogueUI" parent="." instance=ExtResource("5_tefeu")]
+
+[node name="VoiceDialogueStatusUI" parent="." instance=ExtResource("21_voice_status")]
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("9_85g3d")
@@ -656,3 +663,7 @@ clue_id = "clue_302"
 position = Vector2(6100, 847)
 scale = Vector2(0.5, 0.5)
 clue_id = "clue_303"
+
+[node name="EndingTrigger" parent="." instance=ExtResource("23_ending_trigger")]
+position = Vector2(6603, 1279)
+scale = Vector2(0.5, 0.5)
