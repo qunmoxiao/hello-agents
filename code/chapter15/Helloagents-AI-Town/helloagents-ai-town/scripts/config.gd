@@ -7,6 +7,7 @@ const API_CHAT = API_BASE_URL + "/chat"
 const API_NPCS = API_BASE_URL + "/npcs"
 const API_NPC_STATUS = API_BASE_URL + "/npcs/status"
 const API_QUIZ_GENERATED = API_BASE_URL + "/quizzes/generated"
+const WS_QUEST_UPDATES = "ws://localhost:8000/ws/quest_updates"
 
 # ==================== NPC配置 ====================
 const NPC_NAMES = ["老年李白", "青年李白", "中年李白"]

@@ -8,12 +8,19 @@ signal npc_status_received(dialogues: Dictionary)
 signal npc_list_received(npcs: Array)
 signal quiz_generated(quiz_id: String, quiz_data: Dictionary)
 signal quiz_generation_failed(quiz_id: String, error_message: String)
+signal quest_update_received(npc_name: String, quest_id: String, matched_keyword: String)
 
 # HTTP请求节点
 var http_chat: HTTPRequest
 var http_status: HTTPRequest
 var http_npcs: HTTPRequest
 var http_quiz: HTTPRequest
+
+# WebSocket客户端（任务更新）
+var quest_ws_client: WebSocketPeer = null
+var quest_ws_connected: bool = false
+var quest_ws_reconnect_timer: float = 0.0
+const QUEST_WS_RECONNECT_INTERVAL = 5.0  # 重连间隔（秒）
 
 func _ready():
 	# 创建HTTP请求节点
@@ -32,6 +39,9 @@ func _ready():
 	http_status.request_completed.connect(_on_status_request_completed)
 	http_npcs.request_completed.connect(_on_npcs_request_completed)
 	http_quiz.request_completed.connect(_on_quiz_request_completed)
+	
+	# ⭐ 初始化任务更新WebSocket客户端
+	_init_quest_websocket()
 	
 	print("[INFO] API客户端初始化完成")
 
@@ -206,3 +216,92 @@ func _on_quiz_request_completed(_result: int, response_code: int, _headers: Pack
 	
 	print("[INFO] 收到动态题目: quiz_id=%s, questions=%d" % [quiz_id, response["questions"].size()])
 	quiz_generated.emit(quiz_id, response)
+
+# ==================== 任务更新WebSocket ====================
+func _init_quest_websocket():
+	"""初始化任务更新WebSocket客户端"""
+	quest_ws_client = WebSocketPeer.new()
+	_connect_quest_websocket()
+
+func _connect_quest_websocket():
+	"""连接到任务更新WebSocket"""
+	if quest_ws_client == null:
+		quest_ws_client = WebSocketPeer.new()
+	
+	var error = quest_ws_client.connect_to_url(Config.WS_QUEST_UPDATES)
+	if error != OK:
+		print("[ERROR] 连接任务更新WebSocket失败: ", error)
+		quest_ws_connected = false
+		quest_ws_reconnect_timer = QUEST_WS_RECONNECT_INTERVAL
+	else:
+		print("[INFO] 正在连接任务更新WebSocket: ", Config.WS_QUEST_UPDATES)
+
+func _process(delta: float):
+	"""处理WebSocket消息和重连"""
+	if quest_ws_client == null:
+		return
+	
+	# 检查连接状态
+	quest_ws_client.poll()
+	var state = quest_ws_client.get_ready_state()
+	
+	match state:
+		WebSocketPeer.STATE_OPEN:
+			if not quest_ws_connected:
+				quest_ws_connected = true
+				quest_ws_reconnect_timer = 0.0
+				print("[INFO] ✅ 任务更新WebSocket已连接")
+			
+			# 接收消息
+			while quest_ws_client.get_available_packet_count() > 0:
+				var packet = quest_ws_client.get_packet()
+				var message = packet.get_string_from_utf8()
+				_handle_quest_update_message(message)
+		
+		WebSocketPeer.STATE_CLOSED:
+			if quest_ws_connected:
+				quest_ws_connected = false
+				print("[WARN] 任务更新WebSocket连接已断开")
+			
+			# 尝试重连
+			quest_ws_reconnect_timer += delta
+			if quest_ws_reconnect_timer >= QUEST_WS_RECONNECT_INTERVAL:
+				print("[INFO] 尝试重连任务更新WebSocket...")
+				quest_ws_reconnect_timer = 0.0
+				_connect_quest_websocket()
+		
+		WebSocketPeer.STATE_CONNECTING:
+			# 连接中，等待
+			pass
+		
+		WebSocketPeer.STATE_CLOSING:
+			# 关闭中
+			pass
+
+func _handle_quest_update_message(message: String):
+	"""处理任务更新消息"""
+	var json = JSON.new()
+	var parse_result = json.parse(message)
+	
+	if parse_result != OK:
+		print("[ERROR] 解析任务更新消息失败: ", message)
+		return
+	
+	var data = json.data
+	if not data is Dictionary:
+		print("[ERROR] 任务更新消息格式错误")
+		return
+	
+	var msg_type = data.get("type", "")
+	if msg_type == "quest_keyword_matched":
+		var npc_name = data.get("npc_name", "")
+		var quest_id = data.get("quest_id", "")
+		var matched_keyword = data.get("matched_keyword", "")
+		
+		print("[INFO] 📡 收到任务更新: quest_id=", quest_id, ", keyword=", matched_keyword)
+		quest_update_received.emit(npc_name, quest_id, matched_keyword)
+	elif message == "pong":
+		# 心跳响应，忽略
+		pass
+	else:
+		print("[WARN] 未知的任务更新消息类型: ", msg_type)

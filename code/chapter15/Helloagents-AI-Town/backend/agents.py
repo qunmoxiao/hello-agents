@@ -337,7 +337,7 @@ class NPCAgentManager:
             return f"抱歉,我现在有点忙,等会儿再聊吧。(错误: {str(e)})"
     
     def check_keywords_in_response(self, npc_name: str, response: str, keywords: List[List[str]]) -> List[str]:
-        """使用LLM判断回复中是否包含关键词的语义相关表达
+        """统一的关键词匹配：先同义词匹配（快速），再语义匹配（LLM）
         
         Args:
             npc_name: NPC名称
@@ -350,9 +350,15 @@ class NPCAgentManager:
         if not keywords or not response:
             return []
         
-        # 如果LLM不可用，降级到简单字符串匹配
+        # ⭐ 第一步：先进行同义词匹配（快速，无API调用）
+        matched = self._simple_keyword_match(response, keywords)
+        if matched:
+            print(f"[INFO] 同义词匹配成功: {matched}")
+            return matched  # 直接返回，不调用LLM
+        
+        # ⭐ 第二步：同义词匹配失败，再进行语义匹配（慢，需要LLM）
         if self.llm is None:
-            return self._simple_keyword_match(response, keywords)
+            return []  # LLM不可用，返回空
         
         try:
             # 构建关键词字符串（展平所有同义词组）
@@ -403,15 +409,17 @@ NPC回复内容：
                     if 1 <= group_idx <= len(keyword_groups):
                         # 返回同义词组的第一个关键词作为主关键词
                         matched_keywords.append(keyword_groups[group_idx - 1][0])
+                if matched_keywords:
+                    print(f"[INFO] 语义匹配成功: {matched_keywords}")
                 return matched_keywords
             else:
-                # 如果无法解析，降级到简单匹配
+                # 如果无法解析，返回空
                 print(f"[WARN] 无法解析LLM返回的关键词匹配结果: {llm_response}")
-                return self._simple_keyword_match(response, keywords)
+                return []
                 
         except Exception as e:
-            print(f"[WARN] 关键词语义匹配失败: {e}，降级到简单字符串匹配")
-            return self._simple_keyword_match(response, keywords)
+            print(f"[WARN] 关键词语义匹配失败: {e}")
+            return []
     
     def _simple_keyword_match(self, response: str, keywords: List[List[str]]) -> List[str]:
         """简单字符串匹配（降级方案）"""

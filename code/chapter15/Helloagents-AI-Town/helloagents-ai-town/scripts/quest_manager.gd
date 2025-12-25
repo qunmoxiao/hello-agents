@@ -23,6 +23,9 @@ func _ready():
 	# 连接现有系统的信号
 	_connect_existing_systems()
 	
+	# ⭐ 连接任务更新WebSocket信号
+	call_deferred("_connect_quest_websocket")
+	
 	# ⭐ 重置后自动启动初始任务
 	call_deferred("_auto_start_initial_quests")
 
@@ -50,6 +53,35 @@ func _connect_region_system():
 		if not RegionManager.region_unlocked.is_connected(_on_region_unlocked):
 			RegionManager.region_unlocked.connect(_on_region_unlocked)
 			print("[INFO] 已连接到区域管理系统")
+
+func _connect_quest_websocket():
+	"""连接任务更新WebSocket信号"""
+	var api_client = get_node_or_null("/root/APIClient")
+	if api_client:
+		if not api_client.quest_update_received.is_connected(_on_quest_update_received):
+			api_client.quest_update_received.connect(_on_quest_update_received)
+			print("[INFO] 已连接到任务更新WebSocket")
+	else:
+		# 如果还没找到，再延迟一次
+		await get_tree().process_frame
+		_connect_quest_websocket()
+
+func _on_quest_update_received(npc_name: String, quest_id: String, matched_keyword: String):
+	"""处理来自WebSocket的任务更新
+	Args:
+		npc_name: NPC名称
+		quest_id: 任务ID
+		matched_keyword: 匹配到的关键词（主关键词）
+	"""
+	print("[INFO] 📡 收到外部对话任务更新: quest_id=", quest_id, ", keyword=", matched_keyword)
+	
+	# 检查任务是否存在且在进行中
+	if quest_id not in active_quests:
+		print("[WARN] 任务更新失败: 任务不存在或未激活 - ", quest_id)
+		return
+	
+	# 更新任务进度
+	update_quest_progress(quest_id, -1, matched_keyword, "")
 
 func load_quest_database():
 	"""加载任务数据库"""

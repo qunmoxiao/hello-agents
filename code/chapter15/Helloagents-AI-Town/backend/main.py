@@ -2,6 +2,8 @@
 
 import json
 import os
+import asyncio
+import uuid
 from contextlib import asynccontextmanager
 from typing import List, Dict, Any
 
@@ -93,6 +95,53 @@ def get_managers():
         quiz_generator = get_quiz_generator()
     return npc_manager, state_manager, quiz_generator
 
+# ==================== 任务更新WebSocket连接管理器 ====================
+
+class QuestUpdateManager:
+    """管理前端WebSocket连接，用于广播任务更新"""
+    
+    def __init__(self):
+        self.connections: Dict[str, WebSocket] = {}
+        self.lock = asyncio.Lock()
+    
+    async def add_connection(self, connection_id: str, websocket: WebSocket):
+        """添加连接"""
+        async with self.lock:
+            self.connections[connection_id] = websocket
+            log_info(f"📡 任务更新连接已添加: {connection_id} (当前连接数: {len(self.connections)})")
+    
+    async def remove_connection(self, connection_id: str):
+        """移除连接"""
+        async with self.lock:
+            if connection_id in self.connections:
+                del self.connections[connection_id]
+                log_info(f"📡 任务更新连接已移除: {connection_id} (当前连接数: {len(self.connections)})")
+    
+    async def broadcast_update(self, message: Dict[str, Any]):
+        """广播任务更新消息给所有连接的前端"""
+        if not self.connections:
+            return
+        
+        message_json = json.dumps(message, ensure_ascii=False)
+        disconnected = []
+        
+        async with self.lock:
+            connections_copy = dict(self.connections)
+        
+        for connection_id, websocket in connections_copy.items():
+            try:
+                await websocket.send_text(message_json)
+            except Exception as e:
+                log_error(f"📡 广播消息失败 (连接 {connection_id}): {e}")
+                disconnected.append(connection_id)
+        
+        # 清理断开的连接
+        for conn_id in disconnected:
+            await self.remove_connection(conn_id)
+
+# 全局任务更新管理器
+quest_update_manager = QuestUpdateManager()
+
 # ==================== API路由 ====================
 
 @app.get("/")
@@ -114,6 +163,21 @@ async def root():
         }
     }
 
+def _load_quests_data() -> Dict[str, Any]:
+    """加载任务数据（内部函数，避免重复读取文件）"""
+    try:
+        quests_path = os.path.join(os.path.dirname(__file__), "..", "helloagents-ai-town", "data", "quests.json")
+        quests_path = os.path.normpath(quests_path)
+        
+        if not os.path.exists(quests_path):
+            return {}
+        
+        with open(quests_path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"[WARN] 加载任务数据失败: {e}")
+        return {}
+
 def get_quest_keywords_for_npc(npc_name: str) -> List[List[str]]:
     """获取指定NPC的所有任务关键词（同义词组）
     
@@ -123,35 +187,52 @@ def get_quest_keywords_for_npc(npc_name: str) -> List[List[str]]:
     Returns:
         关键词列表，每个元素是一个同义词组（列表）
     """
-    try:
-        # 获取 quests.json 路径（相对于 backend 目录）
-        quests_path = os.path.join(os.path.dirname(__file__), "..", "helloagents-ai-town", "data", "quests.json")
-        quests_path = os.path.normpath(quests_path)
-        
-        if not os.path.exists(quests_path):
-            print(f"[WARN] 任务文件不存在: {quests_path}")
-            return []
-        
-        with open(quests_path, "r", encoding="utf-8") as f:
-            quests_data = json.load(f)
-        
-        keywords = []
-        for quest_id, quest in quests_data.items():
-            # 只获取对话任务且匹配NPC的关键词
-            if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
-                quest_keywords = quest.get("keywords", [])
-                for keyword_group in quest_keywords:
-                    # 支持两种格式：字符串或数组
-                    if isinstance(keyword_group, list):
-                        keywords.append(keyword_group)
-                    else:
-                        # 向后兼容：单个字符串也当作数组处理
-                        keywords.append([keyword_group])
-        
-        return keywords
-    except Exception as e:
-        print(f"[WARN] 获取任务关键词失败: {e}")
+    quests_data = _load_quests_data()
+    if not quests_data:
         return []
+    
+    keywords = []
+    for quest_id, quest in quests_data.items():
+        # 只获取对话任务且匹配NPC的关键词
+        if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+            quest_keywords = quest.get("keywords", [])
+            for keyword_group in quest_keywords:
+                # 支持两种格式：字符串或数组
+                if isinstance(keyword_group, list):
+                    keywords.append(keyword_group)
+                else:
+                    # 向后兼容：单个字符串也当作数组处理
+                    keywords.append([keyword_group])
+    
+    return keywords
+
+def find_quests_for_matched_keyword(npc_name: str, matched_keyword: str) -> List[str]:
+    """查找匹配关键词对应的任务ID列表
+    
+    Args:
+        npc_name: NPC名称
+        matched_keyword: 匹配到的关键词（主关键词）
+    
+    Returns:
+        任务ID列表
+    """
+    quests_data = _load_quests_data()
+    if not quests_data:
+        return []
+    
+    matched_quest_ids = []
+    for quest_id, quest in quests_data.items():
+        if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
+            quest_keywords = quest.get("keywords", [])
+            for keyword_group in quest_keywords:
+                keyword_list = keyword_group if isinstance(keyword_group, list) else [keyword_group]
+                # 检查匹配的关键词是否在这个同义词组中，或者是否是该组的主关键词
+                if matched_keyword in keyword_list or (len(keyword_list) > 0 and matched_keyword == keyword_list[0]):
+                    if quest_id not in matched_quest_ids:
+                        matched_quest_ids.append(quest_id)
+                    break
+    
+    return matched_quest_ids
 
 @app.get("/health")
 async def health_check():
@@ -557,6 +638,32 @@ async def dialogues_websocket(websocket: WebSocket):
                     player_id=player_id,
                     timestamp=timestamp,
                 )
+                
+                # ⭐ 如果是NPC的回复，进行关键词匹配并广播任务更新
+                if speaker == "npc":
+                    keywords = get_quest_keywords_for_npc(npc_name)
+                    if keywords:
+                        matched_keywords = npc_mgr.check_keywords_in_response(
+                            npc_name,
+                            content,
+                            keywords
+                        )
+                        if matched_keywords:
+                            # 为每个匹配的关键词查找对应的任务并广播
+                            for matched_keyword in matched_keywords:
+                                matched_quest_ids = find_quests_for_matched_keyword(npc_name, matched_keyword)
+                                for quest_id in matched_quest_ids:
+                                    # 广播任务更新
+                                    update_message = {
+                                        "type": "quest_keyword_matched",
+                                        "npc_name": npc_name,
+                                        "quest_id": quest_id,
+                                        "matched_keyword": matched_keyword,
+                                        "content": content[:100]  # 只发送前100个字符
+                                    }
+                                    await quest_update_manager.broadcast_update(update_message)
+                                    log_info(f"📡 任务更新已广播: quest_id={quest_id}, keyword={matched_keyword}")
+                                
             except Exception as exc:
                 log_error(f"WS 对话注入异常: npc={npc_name}, error={exc}")
                 continue
@@ -566,6 +673,40 @@ async def dialogues_websocket(websocket: WebSocket):
     except Exception as exc:
         log_error(f"WS 连接异常中断: {exc}")
     finally:
+        try:
+            await websocket.close()
+        except RuntimeError:
+            # 已关闭
+            pass
+
+@app.websocket("/ws/quest_updates")
+async def quest_updates_websocket(websocket: WebSocket):
+    """任务更新WebSocket端点 - 前端连接后接收任务进度更新通知"""
+    await websocket.accept()
+    connection_id = str(uuid.uuid4())
+    
+    log_info(f"🌐 任务更新WebSocket连接已建立: {connection_id}")
+    
+    try:
+        await quest_update_manager.add_connection(connection_id, websocket)
+        
+        # 保持连接，等待广播消息
+        while True:
+            # 接收ping消息保持连接活跃
+            try:
+                message = await websocket.receive_text()
+                # 可以处理客户端发送的心跳消息
+                if message == "ping":
+                    await websocket.send_text("pong")
+            except WebSocketDisconnect:
+                break
+                
+    except WebSocketDisconnect:
+        log_info(f"🌐 任务更新WebSocket客户端断开连接: {connection_id}")
+    except Exception as exc:
+        log_error(f"📡 任务更新WebSocket连接异常: {exc}")
+    finally:
+        await quest_update_manager.remove_connection(connection_id)
         try:
             await websocket.close()
         except RuntimeError:
