@@ -119,16 +119,14 @@ func start_dialogue(npc_name: String):
 		external_app_success = start_external_app_for_lisi(3)
 
 	# ⭐ 如果外部程序启动成功，不显示聊天框，直接返回
+	# ⭐ 注意：不再在这里控制 player 的 interaction，改为通过外部对话 WebSocket 连接状态控制
 	if external_app_success:
 		print("[INFO] 外部程序已启动，不显示聊天框")
 		# 通知NPC进入交互状态 (停止移动) 
 		var npc = get_npc_by_name(npc_name)
 		if npc and npc.has_method("set_interacting"):
 			npc.set_interacting(true)
-		# 通知玩家进入交互状态 (禁用移动)
-		var player = get_tree().get_first_node_in_group("player")
-		if player and player.has_method("set_interacting"):
-			player.set_interacting(true)
+		# ⭐ 不再控制玩家交互状态，改为通过外部对话 WebSocket 连接状态控制
 		return
 
 	# ⭐ 外部程序启动失败，使用聊天框文字输入

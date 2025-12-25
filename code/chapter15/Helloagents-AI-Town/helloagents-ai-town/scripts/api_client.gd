@@ -314,23 +314,24 @@ func _handle_quest_update_message(message: String):
 		# 发送信号
 		external_dialogue_ws_status_received.emit(status, status_message)
 		
-		# ⭐ TODO: 处理外部对话WebSocket连接状态变化
-		# 当 status == "connected" 时，表示外部对话WebSocket已连接
-		# 当 status == "disconnected" 时，表示外部对话WebSocket已断开
-		# 
+		# ⭐ 根据 WebSocket 连接状态控制玩家交互状态
+		var player = get_tree().get_first_node_in_group("player")
+		if player and player.has_method("set_interacting"):
+			if status == "connected":
+				# 外部对话WebSocket已连接，禁用玩家移动
+				player.set_interacting(true)
+				print("[INFO] ✅ 外部对话系统已连接，玩家移动已禁用")
+			elif status == "disconnected":
+				# 外部对话WebSocket已断开，恢复玩家移动
+				player.set_interacting(false)
+				print("[INFO] ⚠️ 外部对话系统已断开，玩家移动已恢复")
+		
+		# ⭐ TODO: 其他处理外部对话WebSocket连接状态变化的逻辑
 		# 可以在这里：
 		# 1. 更新UI显示连接状态（如显示连接指示器）
 		# 2. 启用/禁用相关功能
 		# 3. 显示提示信息给用户
 		# 4. 记录连接状态日志
-		# 
-		# 示例：
-		# if status == "connected":
-		#     # 显示连接成功提示
-		#     print("[INFO] ✅ 外部对话系统已连接")
-		# elif status == "disconnected":
-		#     # 显示断开提示
-		#     print("[WARN] ⚠️ 外部对话系统已断开")
 	elif message == "pong":
 		# 心跳响应，忽略
 		pass
