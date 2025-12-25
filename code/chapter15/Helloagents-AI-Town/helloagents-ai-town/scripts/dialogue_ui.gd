@@ -494,7 +494,7 @@ func _update_button_alignment():
 	
 	print("[INFO] 按钮位置已对齐，对话内容框宽度: ", dialogue_width)
 
-# ⭐ 任务系统集成：检查对话任务进度（支持同义词组匹配）
+# ⭐ 任务系统集成：检查对话任务进度（支持同义词组匹配，支持多个关键字同时匹配）
 func _check_dialogue_quests(npc_name: String, message: String, backend_matched_keywords: Array = []):
 	"""检查对话任务进度
 	Args:
@@ -515,10 +515,10 @@ func _check_dialogue_quests(npc_name: String, message: String, backend_matched_k
 		if quest.get("type") == "dialogue" and quest.get("npc") == npc_name:
 			# 检查关键词（支持同义词组）
 			var keywords = quest.get("keywords", [])
-			var matched_keyword = null
-			var frontend_matched = false
+			var matched_keywords: Array[String] = []  # ⭐ 改为数组，支持多个关键字匹配
+			var frontend_matched_keywords: Array[String] = []  # 前端匹配的关键字
 			
-			# ⭐ 第一步：前端同义词匹配
+			# ⭐ 第一步：前端同义词匹配（遍历所有关键词组，收集所有匹配的关键字）
 			for keyword_group in keywords:
 				# 支持两种格式：字符串（向后兼容）或数组（同义词组）
 				var keyword_list = []
@@ -531,16 +531,15 @@ func _check_dialogue_quests(npc_name: String, message: String, backend_matched_k
 				# 检查是否包含同义词组中的任意一个
 				for keyword in keyword_list:
 					if message.contains(keyword):
-						matched_keyword = keyword_list[0]  # 使用第一个关键词作为主关键词
-						frontend_matched = true
-						print("[INFO] 前端匹配到关键词（同义词）: ", matched_keyword, " (同义词组: ", keyword_list, ")")
-						break
-				
-				if frontend_matched:
-					break
+						var main_keyword = keyword_list[0]  # 使用第一个关键词作为主关键词
+						# ⭐ 避免重复添加
+						if main_keyword not in frontend_matched_keywords:
+							frontend_matched_keywords.append(main_keyword)
+							print("[INFO] 前端匹配到关键词（同义词）: ", main_keyword, " (同义词组: ", keyword_list, ")")
+						break  # 找到匹配后跳出内层循环，继续检查下一个关键词组
 			
 			# ⭐ 第二步：如果前端没匹配到，检查后端语义匹配结果
-			if not frontend_matched and backend_matched_keywords.size() > 0:
+			if frontend_matched_keywords.is_empty() and backend_matched_keywords.size() > 0:
 				# 遍历关键词组，找到后端匹配的关键词对应的主关键词
 				for keyword_group in keywords:
 					var keyword_list = []
@@ -552,16 +551,20 @@ func _check_dialogue_quests(npc_name: String, message: String, backend_matched_k
 					# 检查后端匹配的关键词是否在这个同义词组中
 					for backend_keyword in backend_matched_keywords:
 						if backend_keyword in keyword_list:
-							matched_keyword = keyword_list[0]  # 使用第一个关键词作为主关键词
-							print("[INFO] 后端语义匹配到关键词: ", matched_keyword, " (后端返回: ", backend_keyword, ")")
-							break
-					
-					if matched_keyword:
-						break
+							var main_keyword = keyword_list[0]  # 使用第一个关键词作为主关键词
+							# ⭐ 避免重复添加
+							if main_keyword not in matched_keywords:
+								matched_keywords.append(main_keyword)
+								print("[INFO] 后端语义匹配到关键词: ", main_keyword, " (后端返回: ", backend_keyword, ")")
+							break  # 找到匹配后跳出内层循环，继续检查下一个关键词组
+			else:
+				# ⭐ 如果前端匹配到了，使用前端匹配的结果
+				matched_keywords = frontend_matched_keywords
 			
-			# 如果匹配到关键词，更新任务进度
-			if matched_keyword:
+			# ⭐ 遍历所有匹配的关键字，逐个更新任务进度
+			for matched_keyword in matched_keywords:
 				QuestManager.update_quest_progress(quest_id, -1, matched_keyword, "")
+				print("[INFO] ✅ 已更新任务进度: quest_id=", quest_id, ", keyword=", matched_keyword)
 
 # ⭐ 测试功能：直接完成对话任务
 func _complete_dialogue_quests_test(npc_name: String):
