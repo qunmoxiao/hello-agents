@@ -15,6 +15,10 @@ var status_update_timer: float = 0.0
 # 暂停菜单
 var pause_menu: Node = null
 
+# ⭐ 语音互动提示UI
+var voice_interaction_hint: CanvasLayer = null
+var voice_interaction_label: Label = null
+
 func _ready():
 	# 添加到main组，方便其他节点查找
 	add_to_group("main")
@@ -25,6 +29,9 @@ func _ready():
 	api_client = get_node_or_null("/root/APIClient")
 	if api_client:
 		api_client.npc_status_received.connect(_on_npc_status_received)
+		
+		# ⭐ 连接外部对话WebSocket状态信号
+		api_client.external_dialogue_ws_status_received.connect(_on_external_dialogue_ws_status_received)
 		
 		# 立即获取一次NPC状态
 		api_client.get_npc_status()
@@ -56,6 +63,9 @@ func _ready():
 	
 	# ⭐ 创建暂停菜单
 	_create_pause_menu()
+	
+	# ⭐ 创建语音互动提示UI
+	_create_voice_interaction_hint()
 
 func _on_region_unlocked(region_id: int):
 	"""区域解锁时的回调"""
@@ -96,6 +106,106 @@ func get_npc_node(npc_name: String) -> Node2D:
 			return npc_wang
 		_:
 			return null
+
+# ⭐ 处理外部对话WebSocket状态变化
+func _on_external_dialogue_ws_status_received(status: String, message: String):
+	"""外部对话WebSocket状态变化回调"""
+	print("[INFO] 📡 外部对话WebSocket状态: ", status, " - ", message)
+	
+	if status == "connected":
+		# 显示"语音互动中"提示
+		_show_voice_interaction_hint()
+	elif status == "disconnected":
+		# 隐藏提示
+		_hide_voice_interaction_hint()
+
+# ⭐ 创建语音互动提示UI
+func _create_voice_interaction_hint():
+	"""创建语音互动提示UI"""
+	# 创建CanvasLayer
+	voice_interaction_hint = CanvasLayer.new()
+	voice_interaction_hint.name = "VoiceInteractionHint"
+	
+	# 创建Control容器
+	var control = Control.new()
+	control.name = "Control"
+	control.set_anchors_preset(Control.PRESET_FULL_RECT)
+	control.mouse_filter = Control.MOUSE_FILTER_IGNORE  # 不拦截鼠标事件
+	voice_interaction_hint.add_child(control)
+	
+	# 创建Label
+	voice_interaction_label = Label.new()
+	voice_interaction_label.name = "HintLabel"
+	voice_interaction_label.text = "🎤 语音互动中"
+	voice_interaction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	voice_interaction_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	
+	# 设置位置（屏幕顶部居中）
+	voice_interaction_label.set_anchors_preset(Control.PRESET_TOP_WIDE)
+	voice_interaction_label.offset_top = 20
+	voice_interaction_label.offset_left = 0
+	voice_interaction_label.offset_right = 0
+	voice_interaction_label.offset_bottom = 60
+	
+	# 设置样式
+	voice_interaction_label.add_theme_font_size_override("font_size", 36)
+	voice_interaction_label.add_theme_color_override("font_color", Color(0.2, 0.9, 0.3, 1.0))  # 绿色文字
+	
+	# 设置背景样式
+	var style_box = StyleBoxFlat.new()
+	style_box.bg_color = Color(0.0, 0.0, 0.0, 0.6)  # 半透明黑色背景
+	style_box.border_color = Color(0.2, 0.9, 0.3, 0.8)  # 绿色边框
+	style_box.border_width_left = 3
+	style_box.border_width_top = 3
+	style_box.border_width_right = 3
+	style_box.border_width_bottom = 3
+	style_box.corner_radius_top_left = 10
+	style_box.corner_radius_top_right = 10
+	style_box.corner_radius_bottom_left = 10
+	style_box.corner_radius_bottom_right = 10
+	style_box.shadow_color = Color(0.0, 0.0, 0.0, 0.5)
+	style_box.shadow_size = 8
+	style_box.shadow_offset = Vector2(0, 4)
+	voice_interaction_label.add_theme_stylebox_override("normal", style_box)
+	
+	control.add_child(voice_interaction_label)
+	
+	# 添加到场景树
+	get_tree().root.add_child(voice_interaction_hint)
+	
+	# 初始状态：隐藏
+	voice_interaction_hint.visible = false
+	
+	print("[INFO] ✅ 语音互动提示UI已创建")
+
+# ⭐ 显示语音互动提示
+func _show_voice_interaction_hint():
+	"""显示语音互动提示"""
+	if not voice_interaction_hint:
+		_create_voice_interaction_hint()
+	
+	if voice_interaction_hint:
+		voice_interaction_hint.visible = true
+		
+		# 淡入动画
+		if voice_interaction_label:
+			voice_interaction_label.modulate.a = 0.0
+			var tween = create_tween()
+			tween.tween_property(voice_interaction_label, "modulate:a", 1.0, 0.3)
+		
+		print("[INFO] ✅ 显示语音互动提示")
+
+# ⭐ 隐藏语音互动提示
+func _hide_voice_interaction_hint():
+	"""隐藏语音互动提示"""
+	if voice_interaction_hint and voice_interaction_label:
+		# 淡出动画
+		var tween = create_tween()
+		tween.tween_property(voice_interaction_label, "modulate:a", 0.0, 0.3)
+		await tween.finished
+		voice_interaction_hint.visible = false
+		
+		print("[INFO] ✅ 隐藏语音互动提示")
 
 func _create_pause_menu():
 	"""创建暂停菜单UI"""
