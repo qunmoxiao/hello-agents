@@ -747,7 +747,7 @@ async def quest_updates_websocket(websocket: WebSocket):
 # ==================== 主程序入口 ====================
 
 if __name__ == "__main__":
-    print("\n🚀 启动后端服务...")
+    print("\n🚀 启动赛博小镇后端服务...")
     print(f"📍 监听地址: {settings.API_HOST}:{settings.API_PORT}")
     print(f"📖 访问文档: http://localhost:{settings.API_PORT}/docs\n")
     
